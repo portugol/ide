@@ -1,8 +1,4 @@
 ide
 ===
 
-
-NOVO README
-
-
-safsadfasfsadf
+Portugol IDE alpha
