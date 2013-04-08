@@ -1,0 +1,13 @@
+body {
+	background: #333;
+	color: #fff;
+}
+#pallete{
+	float: left;
+	border: 1px solid white;
+}
+#paper{
+	border: 1px solid white;
+	height: 500px;
+	width: 500px;
+}
