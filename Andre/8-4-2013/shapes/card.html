@@ -19,7 +19,7 @@
 
 			var paper = Raphael("test", 500, 500);*/
 
-		var paper = Raphael("paper", 500, 500);
+		var paper = Raphael("paper", 1024, 500);
 		
 
 
@@ -31,12 +31,18 @@
 		ruin your design)
 		Technique:Basic Drag and Drop.
 		****************************************************************************/
-		paper.setStart();
+		//paper.setStart();
 		var card = paper.path('M19,0 L93,0 A5,5,0,0,1,98,5 L98,55 A5,5,0,0,1,93,60 L5,60 A5,5,0,0,1,0,55 L0,20 L19,0 z'); // objecto 
 
 		card.attr({fill: 'orange', stroke: 'none'});
-		paper.freeTransform(card, {});
+		
+		paper.freeTransform(card, { drag: ['','self'], draw: [ 'bbox', '' ], rotate: false , scale: ['','','bboxCorners','bboxSides'] , keepRatio: true, attrs: {fill: '#000', stroke: '#FFF'}});
 
+/*
+		paper.freeTransform(card, { drag: ['','self'], draw: [ 'bbox', '' ], rotate: false , scale: ['','','','bboxSides']});
+
+		paper.freeTransform(card, { drag: ['','self'], draw: [ 'bbox', '' ], rotate: false , scale: ['','','bboxCorners','']});
+*/
 
 		/*var rect = paper.rect(10, 10, 50, 50);
 		var circle = paper.circle(110, 35, 25);

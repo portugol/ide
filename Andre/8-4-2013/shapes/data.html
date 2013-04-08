@@ -12,12 +12,12 @@
 		<div id ="paper"></div>
 
 		<script type="text/javascript">
-			var paper = Raphael("paper",0,0,500,500);
+			var paper = Raphael("paper", 1024, 500);
 			
 			//paper.setStart();
 			var card = paper.path('M19,5 A2,5,30,0,1,24,0 L93,0 A5,4,0,0,1,98,5 L79,55 A2,5,30,0,1,74,60 L4,60 A5,4,0,0,1,0,55 Z');
 			card.attr({fill: 'orange', stroke: 'none'});
-			paper.freeTransform(card, {});
+			paper.freeTransform(card, { drag: ['','self'], draw: [ 'bbox', '' ], rotate: false , scale: ['','','bboxCorners','bboxSides'] , keepRatio: true, attrs: {fill: '#000', stroke: '#FFF'}});
 
 /*
 			var p  = paper.setFinish(),newTX=0,newTY=0,fDx=0,fDy=0,tAddX,tAddY,reInitialize=false,
