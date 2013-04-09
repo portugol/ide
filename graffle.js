@@ -80,10 +80,20 @@ $(window).on('ready', function () {
             socket.emit('flowchart', JSON.stringify(aux2));
 
             socket.on('validate', function(data) {
+                console.log('VALIDATED');
+                console.log(data);
+                //FALTAVA O EXECUTAR 
+                if(data.result===true){
+                    socket.emit('execute', JSON.stringify(aux2));
+                }
+            });
+            socket.on('done', function(data) {
+                console.log('OUTPUT');
                 console.log(data);
             });
           });
     });
+
 
     console.log(graph);
 });
