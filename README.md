@@ -1,4 +1,0 @@
-ide
-===
-
-Portugol IDE alpha
