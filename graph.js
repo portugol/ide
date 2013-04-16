@@ -19,7 +19,7 @@ Graph.prototype.add = function (nodev){
 
 
 console.log(nodev);
-    if (nodev.node.type == 3) {
+    if (nodev.node.type == 3 || nodev.node.type == 4) {
           nodev.shape.dblclick(function (){
           var t = prompt('Inserir dados:','');
           if(t === undefined || t.length === 0){
@@ -41,7 +41,7 @@ Graph.prototype.dragger = function (){
         this.ox = this.attr('cx');
         this.oy = this.attr('cy');
         this.animate({opacity: .5});
-    }else if(this.type == 'rect'){
+    }else if(this.type == 'rect' || this.type== 'image'){
         this.ox = this.attr("x");
         this.oy = this.attr("y");
         this.animate({opacity:.5});
@@ -63,13 +63,13 @@ Graph.prototype.move = function (dx, dy){
                 });
             }
         };
-    }else if (this.type == 'rect') {
+    }else if (this.type == 'rect' || this.type== 'image') {
         this.attr({
             x: this.ox + dx,
             y: this.oy + dy
         });
         for (var i = 0; i < self.nodes.length; i++) {
-            if(self.nodes[i].shape[0].type == 'rect'){
+            if(self.nodes[i].shape[0].type == 'rect' || self.nodes[i].shape[0].type == 'image'){
                 self.nodes[i].shape[1].attr({
                     x: (self.nodes[i].shape[0].attr('x') + (self.nodes[i].shape[0].attr('width')/2)),
                     y: (self.nodes[i].shape[0].attr('y') + (self.nodes[i].shape[0].attr('height')/2))
