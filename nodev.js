@@ -3,6 +3,7 @@ var NodeV = function (r, type, data){
 	this.node = new Node(type, data);
 
 	this.r = r;
+
 	//alert(this.node.type);
 
 	switch(this.node.type){
@@ -21,24 +22,42 @@ var NodeV = function (r, type, data){
 			break;
 		case 3:
 			/*var el = r.card(200,150,80,50,2).attr({fill: 'orange', stroke: 'none',opacity: .5});*/
-			//var el = r.card(200,150,80,50,2).attr({fill: 'orange', stroke: 'none',opacity: .5});
-			var el = r.path('M19,0 L93,0 A5,5,0,0,1,98,5 L98,55 A5,5,0,0,1,93,60 L5,60 A5,5,0,0,1,0,55 L0,20 L19,0 z');
+			//var el = r.card(200,150,80,50,2).attr({fill: 'orange', stroke: 'none',opacity: .5});x\
+			//var x = 200;
+			//var y = 150;
+			var el = r.path('M220,150 L300,150 L300,220 L200,220 L200,170 L220,150 z');
+			//r.path('M220,150 L300,150 L300,220 L200,220 L200,170 L220,150 z');
  			el.attr({fill: 'orange', stroke: 'none',opacity: .5});
+ 			//el.x=x;
+ 			//el.y=y;
 			var text = r.text((el.attr('x') + (el.attr('width')/2)), (el.attr('y') + (el.attr('height')/2)), this.node.data).attr({fill: 'black'});
 			var set = r.set(el, text);
 			el.type = 'card';
 			this.shape = set;
 			console.log(el);
 
-    r.customAttributes.pathXY = function( x,y ) {
-        return { path: Raphael.transformPath(this.attr('path'), ['T', x - el.attr('path')[0][1], y - el.attr('path')[0][2] ]) };
-    };
+		    r.customAttributes.pathXY = function( x,y ) {
+		        return { path: Raphael.transformPath(this.attr('path'), ['T', x - el.attr('path')[0][1], y - el.attr('path')[0][2] ]) };
+		    };
 
 
-        el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});
-    
-console.log(el);
-
+		        el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});
+		    
+			console.log(el);
+			var start = function () {
+			  this.lastdx ? this.odx += this.lastdx : this.odx = 0;
+			  this.lastdy ? this.ody += this.lastdy : this.ody = 0;
+			  this.animate({"fill-opacity": 0.2}, 500);
+			},
+			move = function (dx, dy) {
+			  this.transform("T"+(dx+this.odx)+","+(dy+this.ody));
+			  this.lastdx = dx;
+			  this.lastdy = dy;
+			},
+			up = function () {
+			  this.animate({"fill-opacity": 1}, 500);
+			};
+			el.drag(move, start, up);
 			break;
 		case 4:
 		/*
@@ -53,6 +72,7 @@ console.log(el);
 			this.shape = set;
 			break;
 	}
+
 
 
 };
