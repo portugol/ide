@@ -469,7 +469,7 @@
     R.eve = eve;
     var loaded,
         separator = /[, ]+/,
-        elements = {circle: 1, rect: 1, card: 1, path: 1, ellipse: 1, text: 1, image: 1},
+        elements = {circle: 1, rect: 1, path: 1, ellipse: 1, text: 1, image: 1},
         formatrg = /\{(\d+)\}/g,
         proto = "prototype",
         has = "hasOwnProperty",
@@ -576,7 +576,6 @@
             "letter-spacing": 0,
             opacity: 1,
             path: "M0,0",
-            t: 1,
             r: 0,
             rx: 0,
             ry: 0,
@@ -637,19 +636,11 @@
         pipe = function (x) {
             return x;
         },
-        cardPath = R._cardPath = function (x, y, w, h, t, r) {
-            console.log("Tipo: ",t)            
-            return [["M", x+10, y], ["l", (w-10), 0], ["l", 0, h], ["l", -w, 0], ["l", 0, (h-10)], ["z"]];
-        },
-        rectPath = R._rectPath = function (x, y, w, h, t, r) {
+        rectPath = R._rectPath = function (x, y, w, h, r) {
             if (r) {
                 return [["M", x + r, y], ["l", w - r * 2, 0], ["a", r, r, 0, 0, 1, r, r], ["l", 0, h - r * 2], ["a", r, r, 0, 0, 1, -r, r], ["l", r * 2 - w, 0], ["a", r, r, 0, 0, 1, -r, -r], ["l", 0, r * 2 - h], ["a", r, r, 0, 0, 1, r, -r], ["z"]];
-            }  
-            if (t == 1){
-                console.log("UPS");
-                return [["M", x, y], ["l", w, 0], ["l", 0, h], ["l", -w, 0], ["z"]];
-            } ;
-            
+            }
+            return [["M", x, y], ["l", w, 0], ["l", 0, h], ["l", -w, 0], ["z"]];
         },
         ellipsePath = function (x, y, rx, ry) {
             if (ry == null) {
@@ -669,13 +660,9 @@
                 var a = el.attrs;
                 return ellipsePath(a.cx, a.cy, a.rx, a.ry);
             },
-            card: function (el) {
-                var a = el.attrs;
-                return cardPath(a.x, a.y, a.width, a.height, a.t, a.r);
-            },
             rect: function (el) {
                 var a = el.attrs;
-                return rectPath(a.x, a.y, a.width, a.height, a.t, a.r);
+                return rectPath(a.x, a.y, a.width, a.height, a.r);
             },
             image: function (el) {
                 var a = el.attrs;
@@ -3647,13 +3634,8 @@
      | // rectangle with rounded corners
      | var c = paper.rect(40, 40, 50, 50, 10);
     \*/
-    paperproto.rect = function (x, y, w, h, t, r) {
-        var out = R._engine.rect(this, x || 0, y || 0, w || 0, h || 0, t || 0, r || 0);
-        this.__set__ && this.__set__.push(out);
-        return out;
-    };
-    paperproto.card = function (x, y, w, h, t, r) {
-        var out = R._engine.card(this, x || 0, y || 0, w || 0, h || 0, t || 0, r || 0);
+    paperproto.rect = function (x, y, w, h, r) {
+        var out = R._engine.rect(this, x || 0, y || 0, w || 0, h || 0, r || 0);
         this.__set__ && this.__set__.push(out);
         return out;
     };
@@ -6825,23 +6807,12 @@
         $(el, res.attrs);
         return res;
     };
-    R._engine.rect = function (svg, x, y, w, h, t, r) {
-        //console.log("SVG");
+    R._engine.rect = function (svg, x, y, w, h, r) {
         var el = $("rect");
         svg.canvas && svg.canvas.appendChild(el);
         var res = new Element(el, svg);
-        res.attrs = {x: x, y: y, width: w, height: h, t: t, r: r || 0, rx: r || 0, ry: r || 0, fill: "none", stroke: "#000"};
+        res.attrs = {x: x, y: y, width: w, height: h, r: r || 0, rx: r || 0, ry: r || 0, fill: "none", stroke: "#000"};
         res.type = "rect";
-        $(el, res.attrs);
-        return res;
-    };
-    R._engine.card = function (svg, x, y, w, h, t, r) {
-        //console.log("SVG");
-        var el = $("card");
-        svg.canvas && svg.canvas.appendChild(el);
-        var res = new Element(el, svg);
-        res.attrs = {x: x, y: y, width: w, height: h, t: t, r: r || 0, rx: r || 0, ry: r || 0, fill: "none", stroke: "#000"};
-        res.type = "card";
         $(el, res.attrs);
         return res;
     };
@@ -7084,7 +7055,7 @@
         val = /-?[^,\s-]+/g,
         cssDot = "position:absolute;left:0;top:0;width:1px;height:1px",
         zoom = 21600,
-        pathTypes = {path: 1, card: 1, rect: 1, card: 1, image: 1},
+        pathTypes = {path: 1, rect: 1, image: 1},
         ovalTypes = {circle: 1, ellipse: 1},
         path2vml = function (path) {
             var total =  /[ahqstv]/ig,
@@ -7791,23 +7762,8 @@
         p.transform(E);
         return p;
     };
-    R._engine.card = function (vml, x, y, w, h, t, r) {
-        console.log("VML")
-        var path = R.cardPath(x, y, w, h, t, r),
-            res = vml.path(path),
-            a = res.attrs;
-        res.X = a.x = x;
-        res.Y = a.y = y;
-        res.W = a.width = w;
-        res.H = a.height = h;
-        a.r = r;
-        a.path = path;
-        res.type = "rect";
-        return res;
-    };
-    R._engine.rect = function (vml, x, y, w, h, t, r) {
-        console.log("VML")
-        var path = R._rectPath(x, y, w, h, t, r),
+    R._engine.rect = function (vml, x, y, w, h, r) {
+        var path = R._rectPath(x, y, w, h, r),
             res = vml.path(path),
             a = res.attrs;
         res.X = a.x = x;
@@ -7849,7 +7805,7 @@
         });
         return res;
     };
-    R._engine.image = function (vml, src, x, y, w, t, h) {
+    R._engine.image = function (vml, src, x, y, w, h) {
         var path = R._rectPath(x, y, w, h),
             res = vml.path(path).attr({stroke: "none"}),
             a = res.attrs,
@@ -7860,7 +7816,6 @@
         res.Y = a.y = y;
         res.W = a.width = w;
         res.H = a.height = h;
-        res.T = a.t = t;
         a.path = path;
         res.type = "image";
         fill.parentNode == node && node.removeChild(fill);

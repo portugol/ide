@@ -36,7 +36,8 @@ console.log(nodev);
 
 var self = {};
 
-Graph.prototype.dragger = function (){
+Graph.prototype.dragger = function (x, y){
+    console.log(x+ " - " + y);
     if(this.type == 'circle' || this.type == 'ellipse'){
         this.ox = this.attr('cx');
         this.oy = this.attr('cy');
@@ -45,6 +46,9 @@ Graph.prototype.dragger = function (){
         this.ox = this.attr("x");
         this.oy = this.attr("y");
         this.animate({opacity:.5});
+    } else if (this.type == 'card') {
+         this.ox = x;
+         this.oy = y;
     }
 };
 
@@ -77,6 +81,8 @@ Graph.prototype.move = function (dx, dy){
             }
             
         };
+    } else if(this.type == 'card') {
+          this.animate({pathXY: [200,200]}, 100, 'bounce');
     }
     for (var i = self.lines.length; i--;) {
         self.r.connection(self.lines[i].shape);
@@ -90,6 +96,7 @@ Graph.prototype.up = function (){
     }else if(this.type == 'rect'){
         this.animate({opacity:.5});
     };
+           this.animate({});
 }
 
 Graph.prototype.extract = function (){
