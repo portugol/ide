@@ -12,7 +12,7 @@ $(window).on('ready', function(){
 		graph.add(new NodeV(r,4,'Click me'));
 	});
 
-	$('#btnTeste').on('click', function (){
+	$('#btnCard').on('click', function (){
 		graph.add(new NodeV(r,3,'Click me'));
 	});
 
