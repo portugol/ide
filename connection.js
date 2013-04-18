@@ -2,6 +2,8 @@ var Connection = function (r, source, target){
     this.source = source;
     this.target = target;
     this.source.node.next = target.node;
+    console.log("Source: ",source.shape);
+    console.log("Target: ",target.shape);
     this.shape = r.connection(source.shape, target.shape, "#000");
 };
 

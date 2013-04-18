@@ -14,6 +14,7 @@ Graph.prototype.add = function (nodev){
     this.nodes.push(nodev);
 
     for (var i = 0; i < this.nodes.length; i++) {
+        console.log("Graph Shape: ",this.nodes[i].shape);
         this.nodes[i].shape.drag(this.move,this.dragger, this.up);
     };
 
@@ -36,9 +37,10 @@ console.log(nodev);
 
 var self = {};
 
+/*
 Graph.prototype.dragger = function (x, y){
     console.log(x+ " - " + y);
-    if(this.type == 'circle' || this.type == 'ellipse'){
+    if(this.type == 'circle' || this.type == 'ellipse' || this.type == 'beginshape'){
         this.ox = this.attr('cx');
         this.oy = this.attr('cy');
         this.animate({opacity: .5});
@@ -46,9 +48,9 @@ Graph.prototype.dragger = function (x, y){
         this.ox = this.attr("x");
         this.oy = this.attr("y");
         this.animate({opacity:.5});
-    } else if (this.type == 'card') {
-         this.ox = x;
-         this.oy = y;
+    } else if (this.type == 'writeshape') {
+         //this.ox = this.attr("x");
+         //this.oy = this.attr("y");
     }
 };
 
@@ -81,8 +83,8 @@ Graph.prototype.move = function (dx, dy){
             }
             
         };
-    } else if(this.type == 'card') {
-          this.animate({pathXY: [200,200]}, 100, 'bounce');
+    } else if(this.type == 'card' || this.type == 'writeshape') {
+          //this.animate({pathXY: [200,200]}, 100, 'bounce');
     }
     for (var i = self.lines.length; i--;) {
         self.r.connection(self.lines[i].shape);
@@ -98,6 +100,7 @@ Graph.prototype.up = function (){
     };
            this.animate({});
 }
+*/
 
 Graph.prototype.extract = function (){
     console.log("EXTRACT");
