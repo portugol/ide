@@ -14,13 +14,13 @@ Graph.prototype.add = function (nodev){
     this.nodes.push(nodev);
 
     for (var i = 0; i < this.nodes.length; i++) {
-        console.log("Graph Shape: ",this.nodes[i].shape);
+        //console.log("Graph Shape: ",this.nodes[i].shape);
         this.nodes[i].shape.drag(this.move,this.dragger, this.up);
     };
 
 
-console.log(nodev);
-    if (nodev.node.type == 3 || nodev.node.type == 4) {
+    //console.log(nodev);
+    if (nodev.node.type == 3 || nodev.node.type == 5) {
           nodev.shape.dblclick(function (){
           var t = prompt('Inserir dados:','');
           if(t === undefined || t.length === 0){
@@ -37,70 +37,44 @@ console.log(nodev);
 
 var self = {};
 
-/*
+
 Graph.prototype.dragger = function (x, y){
-    console.log(x+ " - " + y);
-    if(this.type == 'circle' || this.type == 'ellipse' || this.type == 'beginshape'){
-        this.ox = this.attr('cx');
-        this.oy = this.attr('cy');
-        this.animate({opacity: .5});
-    }else if(this.type == 'rect' || this.type== 'image'){
-        this.ox = this.attr("x");
-        this.oy = this.attr("y");
-        this.animate({opacity:.5});
-    } else if (this.type == 'writeshape') {
-         //this.ox = this.attr("x");
-         //this.oy = this.attr("y");
-    }
+    //console.log("Drag: ",this.node);
+    if (this.type !== 'text'){
+        this.lastdx ? this.odx += this.lastdx : this.odx = 0;
+        this.lastdy ? this.ody += this.lastdy : this.ody = 0;
+        this.next.lastdx ? this.next.odx += this.next.lastdx : this.next.odx = 0;
+        this.next.lastdy ? this.next.ody += this.next.lastdy : this.next.ody = 0;
+        this.animate({"fill-opacity": 0.2}, 500);
+        this.next.animate({"fill-opacity": 0.2}, 500);
+    }   
 };
 
 
 Graph.prototype.move = function (dx, dy){
-    if(this.type == 'circle' || this.type == 'ellipse'){
-        this.attr({
-            cx: this.ox + dx,
-            cy: this.oy + dy
-        });
-        for (var i = 0; i < self.nodes.length; i++) {
-            if(self.nodes[i].shape[0].type == 'circle' || self.nodes[i].shape[0].type == 'ellipse'){
-                self.nodes[i].shape[1].attr({
-                    x: self.nodes[i].shape[0].attr('cx'),
-                    y: self.nodes[i].shape[0].attr('cy')
-                });
-            }
-        };
-    }else if (this.type == 'rect' || this.type== 'image') {
-        this.attr({
-            x: this.ox + dx,
-            y: this.oy + dy
-        });
-        for (var i = 0; i < self.nodes.length; i++) {
-            if(self.nodes[i].shape[0].type == 'rect' || self.nodes[i].shape[0].type == 'image'){
-                self.nodes[i].shape[1].attr({
-                    x: (self.nodes[i].shape[0].attr('x') + (self.nodes[i].shape[0].attr('width')/2)),
-                    y: (self.nodes[i].shape[0].attr('y') + (self.nodes[i].shape[0].attr('height')/2))
-                });
-            }
-            
-        };
-    } else if(this.type == 'card' || this.type == 'writeshape') {
-          //this.animate({pathXY: [200,200]}, 100, 'bounce');
-    }
-    for (var i = self.lines.length; i--;) {
-        self.r.connection(self.lines[i].shape);
+    //console.log("Move: ",this.type);
+    if (this.type !== 'text'){
+        this.transform("T"+(dx+this.odx)+","+(dy+this.ody));
+        this.next.transform("T"+(dx+this.odx)+","+(dy+this.ody));
+        this.lastdx = dx;
+        this.lastdy = dy;
+        this.next.lastdx = dx;
+        this.next.lastdy = dy;        
     };
+    for (var i = self.lines.length; i--;) {
+            self.r.connection(self.lines[i].shape);
+        };
 };
 
 
 Graph.prototype.up = function (){
-    if(this.type == 'circle'){
-        this.animate({opacity: .5});
-    }else if(this.type == 'rect'){
-        this.animate({opacity:.5});
+    //console.log("Up: ",this.type);
+    if (this.type !== 'text'){
+        this.animate({"fill-opacity": 1}, 500);
+        this.next.animate({"fill-opacity": 1}, 500);
     };
-           this.animate({});
 }
-*/
+
 
 Graph.prototype.extract = function (){
     console.log("EXTRACT");

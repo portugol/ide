@@ -8,12 +8,20 @@ $(window).on('ready', function(){
 		graph.add(new NodeV(r,1));
 	});
 
-	$('#btnescrever').on('click', function (){
-		graph.add(new NodeV(r,4,'Click me'));
+	$('#btnEscrever').on('click', function (){
+		graph.add(new NodeV(r,5,'Click me'));
 	});
 
-	$('#btnCard').on('click', function (){
+	$('#btnif').on('click', function (){
+		graph.add(new NodeV(r,6,'Click me'));
+	});
+
+	$('#btnLer').on('click', function (){
 		graph.add(new NodeV(r,3,'Click me'));
+	});
+
+	$('#btnprocess').on('click', function (){
+		graph.add(new NodeV(r,7,'Click me'));
 	});
 
 	$('#btnfim').on('click', function (){
