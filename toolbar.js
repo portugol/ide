@@ -1,7 +1,7 @@
 
  window.onload = function () {
     this.color = "#236B8E";
-    var paper = new Raphael(document.getElementById('top'), 500, 40);  
+    var paper = new Raphael(document.getElementById('top'), 400, 30);  
     
     var i = 0;
 
