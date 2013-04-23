@@ -1,12 +1,12 @@
 var Connection = function (r, source, target){
     this.source = source;
     this.target = target;
-    this.source.next = target;
+    this.source.node.next = target.node;
     this.shape = r.connection(source.shape, target.shape, "#000");
 };
 
 
-Raphael.fn.connection = function (obj1  , obj2, line, bg) {
+Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (obj1.line && obj1.from && obj1.to) {
         line = obj1;
         obj1 = line.from;
