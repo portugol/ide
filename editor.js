@@ -5,15 +5,17 @@ $(window).on('ready', function(){
 	var graph = new Graph(r);
 
 	$('#btninicio').on('click', function (){
+		console.log(r);
+		console.log(graph);
 		graph.add(new NodeV(r,1));
 	});
 
 	$('#btnEscrever').on('click', function (){
-		graph.add(new NodeV(r,5,'Click me'));
+		graph.add(new NodeV(r,4,'Click me'));
 	});
 
 	$('#btnif').on('click', function (){
-		graph.add(new NodeV(r,6,'Click me'));
+		graph.add(new NodeV(r,5,'Click me'));
 	});
 
 	$('#btnLer').on('click', function (){
@@ -21,7 +23,7 @@ $(window).on('ready', function(){
 	});
 
 	$('#btnprocess').on('click', function (){
-		graph.add(new NodeV(r,7,'Click me'));
+		graph.add(new NodeV(r,6,'Click me'));
 	});
 
 	$('#btnfim').on('click', function (){

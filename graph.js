@@ -68,7 +68,7 @@ Graph.prototype.move = function (dx, dy){
 
 
 Graph.prototype.up = function (){
-    //console.log("Up: ",this.type);
+    console.log("Up: ",this.type);
     if (this.type !== 'text'){
         this.animate({"fill-opacity": 1}, 500);
         this.next.animate({"fill-opacity": 1}, 500);

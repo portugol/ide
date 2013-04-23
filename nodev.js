@@ -5,9 +5,47 @@
 // │ Copyright © 2013 - ESTT - ESCOLA SUPERIOR DE TECNOLOGIA DE TOMAR   │ \\
 // │ 																    │ \\
 // ├────────────────────────────────────────────────────────────────────┤ \\
-// │ DEVELOP BY: LEI - LICENCIATURA ENGENHARIA INFORMATICA              │ \\
-// │             PSI - PROJECTO SISTEMAS INFORMACAO 2012/2013           │ \\
+// │ DEVELOP FOR: LEI - LICENCIATURA ENGENHARIA INFORMATICA             │ \\
+// │              PSI - PROJECTO SISTEMAS INFORMACAO 2012/2013          │ \\
+// │                                                                    │ \\
+// │          BY: Jorge Martins   n.º 13683                             │ \\
+// │              Rafael Costa    n.º 13686                             │ \\
+// │              André Candido   n.º 14019                             │ \\
+// │              Vasco Palmeirão n.º 14067                             │ \\
+// │              Joni Correia    n.º 15501                             │ \\
+// │              João Graça      n.º 15190                             │ \\
+// │              Pedro Pacheco   n.º 15305                             │ \\
+// │              André Farinha   n.º 16181                             │ \\
+// │              João Mauricio   n.º 16499                             │ \\
 // └────────────────────────────────────────────────────────────────────┘ \\
+
+
+/*
+*
+* Nodev.js
+* In this class is defined all drawable shapes used by 
+* IDE in Codeby system.
+*
+* Nodev recives as parameters
+* r: Raphael Paper Object
+* type: is the shape to draw
+* 	1 - Begin
+*  	2 - End
+*  	3 - Read
+*  	4 - Write
+*  	5 - Process
+*  	6 - If
+*  	7 - For
+*  	8 - 
+* data: Contains the text of the shape
+******** NOT IMPLEMENTED YET ************
+*  x: define the X position
+*  y: define the Y position
+*  w: define the WIDTH of the shape
+*  h: define the HIGTH of the shape
+* rx: define the X Radius of the ellipse
+* ry: define the Y Radius of the ellipse 
+*/
 
 
 var NodeV = function (r, type, data){
@@ -19,10 +57,12 @@ var NodeV = function (r, type, data){
 	*
 	* Defines all shapes used in IDE drawing
 	* Attributes
-	* x: define the X position
-	* y: define the Y position
-	* w: define the WIDTH of the shape
-	* h: define the HIGTH of the shape
+	*  x: define the X position
+	*  y: define the Y position
+	*  w: define the WIDTH of the shape
+	*  h: define the HIGTH of the shape
+	* rx: define the X Radius of the ellipse
+	* ry: define the Y Radius of the ellipse 
 	* in JOINSHAPE the h attr defines the radius 
 	*
 	*/
@@ -46,10 +86,10 @@ var NodeV = function (r, type, data){
  			el.attr({fill: 'orange', stroke: 'none',opacity: .5});
  			var text = r.text((x+w/2),(y+h/2),'Click Me').attr({fill: 'black'});;
 			var set = r.set(el, text);
-		    r.customAttributes.pathXY = function( nx,ny ) {
+		    r.customAttributes.pathXY = function(nx, ny ) {
 		        return { path: Raphael.transformPath(this.attr('path'), ['T', nx - el.attr('path')[0][1], ny - el.attr('path')[0][2] ]) };
 		    };
-		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});		    
+		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});
 			return set;
 
 		},
@@ -59,10 +99,10 @@ var NodeV = function (r, type, data){
  			el.attr({fill: 'orange', stroke: 'none',opacity: .5});
  			var text = r.text((x+w/2),(y+h/2),'Click Me').attr({fill: 'black'});;
 			var set = r.set(el, text);
-		    r.customAttributes.pathXY = function( nx,ny ) {
+		    r.customAttributes.pathXY = function(nx, ny ) {
 		        return { path: Raphael.transformPath(this.attr('path'), ['T', nx - el.attr('path')[0][1], ny - el.attr('path')[0][2] ]) };
 		    };
-		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});		    
+		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});
 			return set;
 		},
 		ifshape: function(x, y, w, h){
@@ -71,11 +111,10 @@ var NodeV = function (r, type, data){
  			el.attr({fill: 'orange', stroke: 'none',opacity: .5});
  			var text = r.text((x+w/2),(y+h/2),'Click Me').attr({fill: 'black'});;
 			var set = r.set(el, text);
-		    r.customAttributes.pathXY = function( nx,ny ) {
+		    r.customAttributes.pathXY = function(nx, ny ) {
 		        return { path: Raphael.transformPath(this.attr('path'), ['T', nx - el.attr('path')[0][1], ny - el.attr('path')[0][2] ]) };
 		    };
-		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});		    
-
+		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});
 			return set;
 		},
 		forshape: function(x, y, w, h){
@@ -87,7 +126,7 @@ var NodeV = function (r, type, data){
  			el.attr({fill: 'orange', stroke: 'none',opacity: .5});
  			var text = r.text((x+w/2),(y+h/2),'Click Me').attr({fill: 'black'});;
 			var set = r.set(el, text);
-		    r.customAttributes.pathXY = function( nx,ny ) {
+		    r.customAttributes.pathXY = function(nx, ny ) {
 		        return { path: Raphael.transformPath(this.attr('path'), ['T', nx - el.attr('path')[0][1], ny - el.attr('path')[0][2] ]) };
 		    };
 		    el.attr({pathXY: [el.attr('path')[0][1],el.attr('path')[0][2]]});		    
@@ -122,10 +161,10 @@ var NodeV = function (r, type, data){
 			//this.shape ='endshape';
 			break;
 		case 3:
-			// WRITE SHAPE
-			this.shape = r.MyShapes.writeshape(200,200,100,65,this.node.data);
-			//this.shape = ;
+			// READ SHAPE
+			this.shape = r.MyShapes.readshape(200,300,100,65,this.node.data);
 			break;
+		/*
 		case 4:
 			// IMAGE SHAPE
 			var el = r.image("img.svg",200,300,80,150);
@@ -133,25 +172,26 @@ var NodeV = function (r, type, data){
 			var set = r.set(el, text);
 			this.shape = set;
 			break;
-		case 5:
-			// READ SHAPE
-			this.shape = r.MyShapes.readshape(200,300,100,65,this.node.data);
+		*/
+		case 4:
+			// WRITE SHAPE
+			this.shape = r.MyShapes.writeshape(200,200,100,65,this.node.data);
 			break;
-		case 6:
+		case 5:
 			// IF SHAPE
 			this.shape = r.MyShapes.ifshape(200,300,100,65,this.node.data);
 			break;
-		case 7:
+		case 6:
 			// PROCESS SHAPE
 			this.shape = r.MyShapes.processshape(200,300,100,65,this.node.data);
 			break;
-		case 5:
+		case 7:
 			// IF SHAPE
 			break;
-		case 5:
+		case 8:
 			// SWITCH SHAPE
 			break;
-		case 5:
+		case 9:
 			// ??? SHAPE
 			break;
 	}
