@@ -15,7 +15,7 @@ $(window).on('ready', function(){
 	});
 
 	$('#btnif').on('click', function (){
-		graph.add(new NodeV(r,5,'Click me'));
+		graph.add(new NodeV(r,10,'Click me'));
 	});
 
 	$('#btnLer').on('click', function (){
