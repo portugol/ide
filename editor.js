@@ -9,7 +9,7 @@ $(window).on('ready', function(){
 	});
 
 	$('#btnescrever').on('click', function (){
-		graph.add(new Node(r,3,'0'));
+		graph.add(new Node(r,3,'a'));
 	});
 
 	$('#btnfim').on('click', function (){
@@ -46,6 +46,7 @@ $(window).on('ready', function(){
            	socket.on('execute', function (data){
            		console.log(data);
            	});
+
            	socket.on('done', function (data){
            		console.log('OUTPUT:' + data);
            		var aux2 = document.getElementById('console');

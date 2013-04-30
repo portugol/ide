@@ -1,7 +1,7 @@
 var Connection = function (r, source, target){
     this.source = source;
     this.target = target;
-    //this.source.node.next = target.node;
+    this.source.node.next = target.node;
     this.shape = r.connection(this.source, this.target, "#000");
 
     var self = this;
@@ -18,8 +18,6 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
         obj1 = line.from;
         obj2 = line.to;
     }
-    console.log(obj1.getBBox());
-    console.log(obj2.getBBox());
     var bb1 = obj1.getBBox(),
         bb2 = obj2.getBBox(),
         p = [{x: bb1.x + bb1.width / 2, y: bb1.y - 1},

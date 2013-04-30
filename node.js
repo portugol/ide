@@ -20,7 +20,7 @@ var Node = function (r, type, data){
 			this.data = data;
 			var el = r.rect(200,150,80,50).attr({fill: 'orange', stroke: 'none',opacity: .5});
 			var text = r.text((el.attr('x') + (el.attr('width')/2)), (el.attr('y') + (el.attr('height')/2)), this.data).attr({fill: 'white'});
-			var set = r.set(el, text);
+			var set = r.set(el, data);
 			this.shape = set;
 			break;
 	}

@@ -13,9 +13,8 @@ Graph.prototype.add = function (node){
     }
     this.nodes.push(node);
 
-    for (var i = 0; i < this.nodes.length; i++) {
-        this.nodes[i].shape.drag(this.move,this.dragger, this.up);
-    };
+        node.shape.drag(this.move,this.dragger, this.up);
+    
 
 
 
@@ -83,9 +82,9 @@ Graph.prototype.move = function (dx, dy){
 
 Graph.prototype.up = function (){
     if(this.type == 'circle'){
-        this.animate({opacity: .5});
-    }else if(this.type == 'rect'){
-        this.animate({opacity:.5}, 500,">");
+        this.animate({opacity: .5}, 500,">");
+    }else{
+        this.animate({opacity: .5}, 500,">");
     };
 }
 
