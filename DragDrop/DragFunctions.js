@@ -1,7 +1,9 @@
 var paper;
+var graph;
 window.onload = function (){
     paper = Raphael('canvas', '100%','100%');
     pitch = loadPitch(paper);
+    graph = new Graph(paper);
     loadPalette(paper);         
 };
 
@@ -20,6 +22,7 @@ var DragFunctions = {
         this.oy = 0;
 
         var newPaletteObj = this.clone();
+        newPaletteObj.data('type',this.items[0].data('type'));
         optionsSet.exclude(this);
         optionsSet.push(newPaletteObj);
         DragFunctions.addDragAndDropCapabilityToPaletteOption(newPaletteObj);
@@ -37,14 +40,9 @@ var DragFunctions = {
         };
     },
 
-    findNode: function(shape) {
-            for (var i = DragFunctions.nodes.length; i--;) {
-                    if(DragFunctions.nodes[i].items[0] == shape) {
-                        return i;
-                    }
-            }
-            return -1;
-    },
+    findNode: function(shape) { for (var i = DragFunctions.nodes.length; i--;)
+    { if(DragFunctions.nodes[i].items[0] == shape) {    return i; }    }
+    return -1; },
 
     paletteUp: function(){
         if(!DragFunctions.isInsideCanvas(this)){
@@ -52,26 +50,44 @@ var DragFunctions = {
         }else{
             this.undrag();
             this.scale(1.5,1.5,0,0);
+            this.items[1].dx = 100
             DragFunctions.addDragAndDropCapabilityToSet(this);
             this.animate({"opacity":1}, 500);
-
-            this.dblclick(function (){
+            
+            this.node = new Node(this.items[0].data('type'), null);
+            graph.add(this.node);
+           
+            var self=this;
+            console.log(self);
+            /*this.dblclick(function (){
                 var aux = -1;
                 for (var i = DragFunctions.lines.length; i--;) {
+                    console.log(DragFunctions.lines)
                     if(DragFunctions.lines[i].source.items[0] == this || DragFunctions.lines[i].target.items[0] == this) {
+                        graph.removeline(DragFunctions.lines[i]);
                         DragFunctions.lines[i].shape.line.remove();
-                        DragFunctions.lines.splice(i, 1);               
+                        DragFunctions.lines.splice(i, 1);
                     }
-                }
+                } 
+                graph.remove(self.node);
                 this.remove();
                 DragFunctions.nodes.splice(DragFunctions.findNode(this), 1);  
+            });*/
+            this.dblclick(function (){
+                    var t = prompt('Inserir dados:','');
+                    if(t === undefined || t.length === 0){
+                            t = 'Click me';
+                    }
+                    self.attr({text: t});
             });
-
-            this.node = new Node(this.items[0].data('type'), null);
             
+
             if(DragFunctions.nodes.length != 0){
-                DragFunctions.lines.push(new Connection(paper, DragFunctions.nodes[DragFunctions.nodes.length-1], this));
+                var linha = new Connection(paper, DragFunctions.nodes[DragFunctions.nodes.length-1],this);
+                DragFunctions.lines.push(linha);
+                graph.lines.push(linha);
             }
+            
             DragFunctions.nodes.push(this);
         }
     },
@@ -105,13 +121,11 @@ var DragFunctions = {
 };
 
 var paletteOptions = {
-         "begin"  :{type : 1, color:"yellow", path:"m 0, 0 ,0l0,0c7.8186,0 14.15759,6.72683 14.15759,15.02464c0,8.29783 -6.33899,15.02444 -14.15759,15.02444l-59.68466,0l0,0c-7.8186,0 -14.15775,-6.72662 -14.15775,-15.02444c0,-8.29781 6.33914,-15.02464 14.15775,-15.02464z"},
-         "end"    :{type : 2, color:"yellow", path:"m 0, 0 ,0l0,0c7.8186,0 14.15759,6.72683 14.15759,15.02464c0,8.29783 -6.33899,15.02444 -14.15759,15.02444l-59.68466,0l0,0c-7.8186,0 -14.15775,-6.72662 -14.15775,-15.02444c0,-8.29781 6.33914,-15.02464 14.15775,-15.02464z"},
+
+         "process":{type : 6,color:"yellow", path:"M0,0 L100,0 L100,70 L0,70 L0,0 Z"},
          "read"   :{type : 3,color:"yellow", path:"M20,0 L100,0 L80,70 L0,70 L20,0 Z"},
          "write"  :{type : 4,color:"yellow", path:"M20,0 L100,0 L100,70 L0,70 L0,20 L20,0 Z"},
-         "if"     :{type : 5,color:"yellow", path:"M25,0 L75,50 L50,75 L0,50 L25,0 Z"},
-         "process":{type : 6,color:"yellow", path:"M0,0 L100,0 L100,70 L0,70 L0,0 Z"},
-         "comment":{type : 7,color:"yellow", path:"m42,152l-3,-128l268,0l1,126l-175,0l-25,45l-27,-43l-39,0z"}
+         "if"     :{type : 5,color:"yellow", path:"M25,0 L75,50 L50,75 L0,50 L25,0 Z"}
      };
 
 var loadPitch = function (paper) {
@@ -137,8 +151,8 @@ var loadPalette = function(paper){
         image.transform("S1.3T20," + paletteYOffset);
         image.scale(0.5,0.5,0,0);
         image.data('type',paletteOption.type);
-        console.log(image.data('type'));
-        optionSet = paper.set([image]);
+        var text = paper.text(image.getBBox().width/2, (image.getBBox().height/2)+paletteYOffset, optionName).attr({fill:'black'});
+        optionSet = paper.set([image,text]);
         optionsSet.push(optionSet);
         DragFunctions.addDragAndDropCapabilityToPaletteOption(optionSet);
         i++;
