@@ -1,12 +1,17 @@
 var Connection = function (r, source, target){
     this.source = source;
     this.target = target;
-    this.source.next = target;
-    this.shape = r.connection(source.shape, target.shape, "#000");
+    this.source.node.next = target.node;
+    this.shape = r.connection(this.source, this.target,"#0000FF");
+
+    var self = this;
+    this.shape.line.dblclick(function (){
+        self.shape.line.remove();
+       });
 };
 
 
-Raphael.fn.connection = function (obj1  , obj2, line, bg) {
+Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (obj1.line && obj1.from && obj1.to) {
         line = obj1;
         obj1 = line.from;
@@ -53,7 +58,7 @@ Raphael.fn.connection = function (obj1  , obj2, line, bg) {
         line.bg && line.bg.attr({path: path, "arrow-end": "block-wide-long"});
         line.line.attr({path: path, "arrow-end": "block-wide-long"});
     } else {
-        var color = typeof line == "string" ? line : "#000";
+        var color = typeof line == "string" ? line : "#0000FF";
         return {
             bg: bg && bg.split && this.path(path).attr({stroke: bg.split("|")[0], fill: "none", "stroke-width": bg.split("|")[1] || 3, "arrow-end": "block-wide-long"}),
             line: this.path(path).attr({stroke: color, fill: "none", "arrow-end": "block-wide-long"}),
