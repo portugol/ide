@@ -15,6 +15,7 @@ var DragFunctions = {
         this.ox = 0;
         this.oy = 0;
         this.animate({"opacity":0.5}, 500);
+        
     },
 
     paletteStart:function () {
@@ -40,8 +41,8 @@ var DragFunctions = {
         };
     },
 
-    findNode: function(shape) { for (var i = DragFunctions.nodes.length; i--;)
-    { if(DragFunctions.nodes[i].items[0] == shape) {    return i; }    }
+    findNode: function(shape) {  for (var i = DragFunctions.nodes.length;
+    i--;){  if(DragFunctions.nodes[i].items[0] == shape) { return i; }     }
     return -1; },
 
     paletteUp: function(){
@@ -49,8 +50,7 @@ var DragFunctions = {
             this.remove();
         }else{
             this.undrag();
-            this.scale(1.5,1.5,0,0);
-            this.items[1].dx = 100
+
             DragFunctions.addDragAndDropCapabilityToSet(this);
             this.animate({"opacity":1}, 500);
             
@@ -58,11 +58,11 @@ var DragFunctions = {
             graph.add(this.node);
            
             var self=this;
-            console.log(self);
-            /*this.dblclick(function (){
+
+           /* this.dblclick(function (){
                 var aux = -1;
                 for (var i = DragFunctions.lines.length; i--;) {
-                    console.log(DragFunctions.lines)
+
                     if(DragFunctions.lines[i].source.items[0] == this || DragFunctions.lines[i].target.items[0] == this) {
                         graph.removeline(DragFunctions.lines[i]);
                         DragFunctions.lines[i].shape.line.remove();
@@ -70,15 +70,17 @@ var DragFunctions = {
                     }
                 } 
                 graph.remove(self.node);
-                this.remove();
+                self.remove();
                 DragFunctions.nodes.splice(DragFunctions.findNode(this), 1);  
             });*/
+
             this.dblclick(function (){
                     var t = prompt('Inserir dados:','');
                     if(t === undefined || t.length === 0){
-                            t = 'Click me';
+                            t = '';
                     }
                     self.attr({text: t});
+                    self.node.data = t;
             });
             
 
@@ -100,6 +102,7 @@ var DragFunctions = {
                     };
                 });
             }
+            console.log(this);
             this.animate({"opacity": 1}, 500);
         },
 
@@ -121,11 +124,15 @@ var DragFunctions = {
 };
 
 var paletteOptions = {
-
-         "process":{type : 6,color:"yellow", path:"M0,0 L100,0 L100,70 L0,70 L0,0 Z"},
-         "read"   :{type : 3,color:"yellow", path:"M20,0 L100,0 L80,70 L0,70 L20,0 Z"},
-         "write"  :{type : 4,color:"yellow", path:"M20,0 L100,0 L100,70 L0,70 L0,20 L20,0 Z"},
-         "if"     :{type : 5,color:"yellow", path:"M25,0 L75,50 L50,75 L0,50 L25,0 Z"}
+         "begin"  :{type:1, color:"yellow", path:"M0,15 C0,15 0,0 15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 C15,30 0,30 0,15 Z"},
+         "end"    :{type:2, color:"yellow", path:"M0,15 C0,15 0,0 15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 C15,30 0,30 0,15 Z"},
+         "write"  :{type:3, color:"yellow", path:"M20,0 L100,0 L100,70 L0,70 L0,20 L20,0 Z"},
+         "read"   :{type:4, color:"yellow", path:"M20,0 L100,0 L80,70 L0,70 L20,0 Z"},
+         "if"     :{type:5, color:"yellow", path:"M50,0 L100,50 L50,100 L0,50 L50,0 Z"},
+         "process":{type:6, color:"yellow", path:"M0,0 L100,0 L100,70 L0,70 L0,0 Z"},
+         "return" :{type:7, color:"yellow", path:"M0,15 L15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 L0,15 Z"},
+         "join"   :{type:8, color:"yellow", path:"M0,15 C0,15 0,0 15,0 C15,0 30,0 30,15 C30,15 30,30 15,30 C15,30 0,30 0,15  Z"},
+         "comment":{type:9, color:"yellow", path:"M0,0 L100,0 L100,50 L30,50 L20,60 L10,50 L0,50 L0,0 z"}
      };
 
 var loadPitch = function (paper) {
@@ -151,11 +158,12 @@ var loadPalette = function(paper){
         image.transform("S1.3T20," + paletteYOffset);
         image.scale(0.5,0.5,0,0);
         image.data('type',paletteOption.type);
-        var text = paper.text(image.getBBox().width/2, (image.getBBox().height/2)+paletteYOffset, optionName).attr({fill:'black'});
+        var text = paper.text(image.getBBox().width/2, (image.getBBox().height/2)+imageTextTopMargin,optionName).attr({fill:'black'});
         optionSet = paper.set([image,text]);
         optionsSet.push(optionSet);
         DragFunctions.addDragAndDropCapabilityToPaletteOption(optionSet);
         i++;
+        imageTextTopMargin+=70;
         paletteYOffset+= 70;
     }
 };
