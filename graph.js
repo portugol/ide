@@ -5,31 +5,57 @@ var Graph = function (r){
     self = this;
 };
 
-Graph.prototype.add = function (node){
+Graph.prototype.add = function (nodev){
     if (this.root === undefined) {
-        this.root = node;
+        this.root = nodev;
     }else{
-        this.lines.push(new Connection(this.r, this.nodes[this.nodes.length-1], node));
+        //this.lines.push(new Connection(this.r, this.nodes[this.nodes.length-1], nodev));
     }
-    this.nodes.push(node);
+    this.nodes.push(nodev);
 
     for (var i = 0; i < this.nodes.length; i++) {
         this.nodes[i].shape.drag(this.move,this.dragger, this.up);
     };
 
 
-
-    if (node.type == 3) {
-          node.shape.dblclick(function (){
+console.log(nodev);
+    if (nodev.node.type == 3) {
+          nodev.shape.dblclick(function (){
           var t = prompt('Inserir dados:','');
-          node.data = t;
-          node.shape[1].attr({
+          if(t === undefined || t.length === 0){
+            t = 'Click me';
+          }
+          nodev.node.data = t;
+          nodev.shape[1].attr({
               text: t
           });
        });
     };
-    
+
 };
+
+Graph.prototype.ligacao = function() {
+    var obj1=0;
+    var obj2=0;
+    
+    obj1 = prompt('Primeira shape:','');
+    obj2 = prompt('Segunda shape:','');
+    
+    this.lines.push(new Connection(this.r, this.nodes[obj1-1], this.nodes[obj2-1]));
+};
+
+
+Graph.prototype.selectShape = function(){
+    return this;
+};
+
+Graph.prototype.ligacao2 = function() {
+    
+}
+
+
+
+
 
 var self = {};
 
@@ -37,11 +63,11 @@ Graph.prototype.dragger = function (){
     if(this.type == 'circle' || this.type == 'ellipse'){
         this.ox = this.attr('cx');
         this.oy = this.attr('cy');
-        this.animate({opacity: .25});
+        this.animate({opacity: .5});
     }else if(this.type == 'rect'){
         this.ox = this.attr("x");
         this.oy = this.attr("y");
-        this.animate({opacity:.25});
+        this.animate({opacity:.5});
     }
 };
 
@@ -85,19 +111,12 @@ Graph.prototype.up = function (){
     if(this.type == 'circle'){
         this.animate({opacity: .5});
     }else if(this.type == 'rect'){
-        this.animate({opacity:.5}, 500,">");
+        this.animate({opacity:.5});
     };
 }
 
 Graph.prototype.extract = function (){
-    for (var i = 0; i < this.nodes.length; i++) {
-        delete this.nodes[i].shape[1];
-        delete this.nodes[i].shape;
-        delete this.nodes[i].r;
-    };
-    for(var i = 0; i < this.lines.length; i++){
-        delete this.lines[i].shape;
-        delete this.lines[i].r;
-    };
-    return this;
+    console.log("EXTRACT");
+    console.log(this.root.node);
+    return this.root.node;
 };

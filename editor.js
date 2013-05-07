@@ -5,15 +5,15 @@ $(window).on('ready', function(){
 	var graph = new Graph(r);
 
 	$('#btninicio').on('click', function (){
-		graph.add(new Node(r,1));
+		graph.add(new NodeV(r,1));
 	});
 
 	$('#btnescrever').on('click', function (){
-		graph.add(new Node(r,3,'0'));
+		graph.add(new NodeV(r,3,'Click me'));
 	});
 
 	$('#btnfim').on('click', function (){
-		graph.add(new Node(r,2));
+		graph.add(new NodeV(r,2));
 	});
 
 	$('#btnenviar').on('click', function (){
@@ -38,7 +38,7 @@ $(window).on('ready', function(){
 			console.log('CONNECTED');
 			var aux = graph.extract();
 			var aux1 = {};
-			aux1.root = aux.root;
+			aux1.root = aux;
 			console.log(aux1);
 			
 			socket.emit('execute', JSON.stringify(aux1));
@@ -52,6 +52,9 @@ $(window).on('ready', function(){
            		aux2.innerHTML = aux2.innerHTML + data;
 			});
 		});
+	});
+	$('#btnligacao').on('click', function (){
+		graph.ligacao();
 	});
 });
 
