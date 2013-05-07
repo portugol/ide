@@ -69,7 +69,7 @@ var NodeV = function (r, type, data){
 	Raphael.fn.MyShapes = {
 		beginshape: function(x, y, rx, ry, text){
 			var el = r.ellipse(x, y, rx, ry).attr({fill: "red", stroke: "none", opacity: .5});
-			// ellipse(200,200,50,100);
+			// begin=ellipse(200,200,50,100);
 			var text = r.text(el.attr('cx'),el.attr('cy'),text).attr({fill: 'black'});;
 			var set = r.set(el,text);
 			//el.drag(move, start, up);
