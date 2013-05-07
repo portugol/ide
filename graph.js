@@ -6,6 +6,7 @@ var Graph = function (r){
 };
 
 Graph.prototype.add = function (node){
+
     if (this.root === undefined) {
         this.root = node;
     }
