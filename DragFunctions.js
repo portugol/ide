@@ -11,10 +11,12 @@ var DragFunctions = {
     nodes:[],
     lines:[],
 
-    start:function () {
+    start:function (x,y,e) {
         this.ox = 0;
         this.oy = 0;
-        this.animate({"opacity":0.5}, 500);
+        if(e.which == 1) {
+            this.animate({"opacity":0.5}, 500);
+        }
     },
 
     paletteStart:function () {
@@ -29,15 +31,19 @@ var DragFunctions = {
         this.animate({"opacity":0.5}, 500);
     },
 
-    move: function (dx, dy) {
+    move: function (dx, dy, x, y, e) {
         var new_x = dx - this.ox;
         var new_y = dy - this.oy;
-        this.transform('...T' + new_x + ',' + new_y);
         this.ox = dx;
         this.oy = dy;
-        for (var i = DragFunctions.lines.length; i--;) {
-            paper.connection(DragFunctions.lines[i].shape);
-        };
+        this.xx = x;
+        this.yy = y;
+        if(e.which == 1) {
+            this.transform('...T' + new_x + ',' + new_y);
+            for (var i = DragFunctions.lines.length; i--;) {
+                paper.connection(DragFunctions.lines[i].shape);
+            };
+        }
     },
 
     findNode: function(shape) {
@@ -70,6 +76,12 @@ var DragFunctions = {
             }
 
             graph.add(this.node);
+
+/*
+            this.mouseover(function(e) {
+                console.log()
+            })
+*/
            
             var self=this;
             //console.log(self);
@@ -91,24 +103,26 @@ var DragFunctions = {
                 var t = prompt('Inserir dados:','');
                 if(t === undefined || t.length === 0){
                         t = 'Click me';
-                        //CHAMAR O METODO SETDATA DO GRAPH
                         graph.setData(this, t);
                 }
                 self.attr({text: t});
             });
             
 
+            /*
             if(DragFunctions.nodes.length != 0){
                 var linha = new Connection(paper, DragFunctions.nodes[DragFunctions.nodes.length-1],this);
                 DragFunctions.lines.push(linha);
                 graph.lines.push(linha);
             }
+            */
             
             DragFunctions.nodes.push(this);
         }
     },
 
-        up: function () {
+    up: function (e) {
+        if(e.which == 1) {
             if(!DragFunctions.isInsideCanvas(this)){
                 this.animate({transform:'...T' + (-this.ox) + ',' + (-this.oy)}, 1000, "bounce", function() {
                     for (var i = DragFunctions.lines.length; i--;) {
@@ -117,23 +131,37 @@ var DragFunctions = {
                 });
             }
             this.animate({"opacity": 1}, 500);
-        },
+        } else if(e.which == 3) {
+            var nn = paper.getElementByPoint(this.xx,this.yy);
+            if(nn.type == 'text') {
+                console.log("corrigido");
+                nn = nn.prev;
+            }
 
-        isInsideCanvas: function(obj){
-            var canvasBBox = pitch.getBBox();
-            var objectBBox = obj.getBBox();
-            var objectPartiallyOutside = !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y2) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y2);
-            return !(objectPartiallyOutside);
-        },
-
-
-        addDragAndDropCapabilityToSet: function(compSet) {
-            compSet.drag(this.move, this.start, this.up, compSet, compSet, compSet);
-        },
-
-        addDragAndDropCapabilityToPaletteOption:function (compSet) {
-            compSet.drag(this.move, this.paletteStart, this.paletteUp, compSet, compSet, compSet);
+            if(nn != undefined){
+                //console.log(nn);
+                var linha = new Connection(paper, this, nn);
+                DragFunctions.lines.push(linha);
+                graph.lines.push(linha);
+            }
         }
+    },
+
+    isInsideCanvas: function(obj){
+        var canvasBBox = pitch.getBBox();
+        var objectBBox = obj.getBBox();
+        var objectPartiallyOutside = !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y2) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y2);
+        return !(objectPartiallyOutside);
+    },
+
+
+    addDragAndDropCapabilityToSet: function(compSet) {
+        compSet.drag(this.move, this.start, this.up, compSet, compSet, compSet);
+    },
+
+    addDragAndDropCapabilityToPaletteOption:function (compSet) {
+        compSet.drag(this.move, this.paletteStart, this.paletteUp, compSet, compSet, compSet);
+    }
 };
 
 var paletteOptions = {
