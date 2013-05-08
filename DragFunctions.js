@@ -11,11 +11,12 @@ var DragFunctions = {
     nodes:[],
     lines:[],
 
-    start:function () {
+    start:function (x,y,e) {
         this.ox = 0;
         this.oy = 0;
-        this.animate({"opacity":0.5}, 500);
-        
+        if(e.which == 1) {
+            this.animate({"opacity":0.5}, 500);
+        }
     },
 
     paletteStart:function () {
@@ -30,20 +31,29 @@ var DragFunctions = {
         this.animate({"opacity":0.5}, 500);
     },
 
-    move: function (dx, dy) {
+    move: function (dx, dy, x, y, e) {
         var new_x = dx - this.ox;
         var new_y = dy - this.oy;
-        this.transform('...T' + new_x + ',' + new_y);
         this.ox = dx;
         this.oy = dy;
-        for (var i = DragFunctions.lines.length; i--;) {
-            paper.connection(DragFunctions.lines[i].shape);
-        };
+        this.xx = x;
+        this.yy = y;
+        if(e.which == 1) {
+            this.transform('...T' + new_x + ',' + new_y);
+            for (var i = DragFunctions.lines.length; i--;) {
+                paper.connection(DragFunctions.lines[i].shape);
+            };
+        }
     },
 
-    findNode: function(shape) {  for (var i = DragFunctions.nodes.length;
-    i--;){  if(DragFunctions.nodes[i].items[0] == shape) { return i; }     }
-    return -1; },
+    findNode: function(shape) {
+        for (var i = DragFunctions.nodes.length; i--;){
+            if(DragFunctions.nodes[i].items[0] == shape){
+                return i;
+            }
+        }
+        return -1;
+    },
 
     paletteUp: function(){
         if(!DragFunctions.isInsideCanvas(this)){
@@ -53,17 +63,31 @@ var DragFunctions = {
 
             DragFunctions.addDragAndDropCapabilityToSet(this);
             this.animate({"opacity":1}, 500);
-            
-            this.node = new Node(this.items[0].data('type'), null);
-            graph.add(this.node);
-           
             var self=this;
 
-           /* this.dblclick(function (){
+            if(this.items[0].data('type') === 3 || this.items[0].data('type') === 4 || this.items[0].data('type') === 5){
+                this.node = new Node(this.items[0].data('type'), 'Click me');
+                this.items[1].attr({text: 'Click me'});
+                this.dblclick(function (){
+                    var t = prompt('Inserir dados:','');
+                    if(t === undefined || t.length === 0){
+                            t = 'Click me';
+                    }
+                    self.attr({text: t});
+                    self.node.data = t;
+                });
+            }else if(this.items[0].data('type') === 1 || this.items[0].data('type') === 2){
+                this.node = new Node(this.items[0].data('type'), null);
+            }
+            
+           graph.add(this.node);
+           DragFunctions.nodes.push(this);
+
+           //funçaõ para remocao do no selecionado
+           /*this.dblclick(function (){
                 var aux = -1;
                 for (var i = DragFunctions.lines.length; i--;) {
-
-                    if(DragFunctions.lines[i].source.items[0] == this || DragFunctions.lines[i].target.items[0] == this) {
+                    if(DragFunctions.lines[i].source.items[0] == this || DragFunctions.lines[i].target.items[0] == this || DragFunctions.lines[i].source.items[1] == this || DragFunctions.lines[i].target.items[1] == this) {
                         graph.removeline(DragFunctions.lines[i]);
                         DragFunctions.lines[i].shape.line.remove();
                         DragFunctions.lines.splice(i, 1);
@@ -73,28 +97,11 @@ var DragFunctions = {
                 self.remove();
                 DragFunctions.nodes.splice(DragFunctions.findNode(this), 1);  
             });*/
-
-            this.dblclick(function (){
-                    var t = prompt('Inserir dados:','');
-                    if(t === undefined || t.length === 0){
-                            t = '';
-                    }
-                    self.attr({text: t});
-                    self.node.data = t;
-            });
-            
-
-            if(DragFunctions.nodes.length != 0){
-                var linha = new Connection(paper, DragFunctions.nodes[DragFunctions.nodes.length-1],this);
-                DragFunctions.lines.push(linha);
-                graph.lines.push(linha);
-            }
-            
-            DragFunctions.nodes.push(this);
         }
     },
-
-        up: function () {
+    //acção provocada quando se levanta o rato de um objecto da area de trabalho
+    up: function (e) {
+        if(e.which == 1) {
             if(!DragFunctions.isInsideCanvas(this)){
                 this.animate({transform:'...T' + (-this.ox) + ',' + (-this.oy)}, 1000, "bounce", function() {
                     for (var i = DragFunctions.lines.length; i--;) {
@@ -102,22 +109,51 @@ var DragFunctions = {
                     };
                 });
             }
-            console.log(this);
             this.animate({"opacity": 1}, 500);
-        },
-
+        } else if(e.which == 3 && paper.getElementByPoint(this.xx,this.yy) != null) {
+            var nn = paper.getElementByPoint(this.xx,this.yy);
+            if(nn.type == 'text') {
+                nn = nn.prev;
+            }
+            if(nn != undefined && this != DragFunctions.getElement(nn)){
+                //caso ainda nao exista linha ja definida
+                if(!DragFunctions.checkLine(this, DragFunctions.getElement(nn))){
+                    var linha = new Connection(paper, this, DragFunctions.getElement(nn));
+                    DragFunctions.lines.push(linha);
+                    graph.lines.push(linha);
+                }
+            }
+        }
+    },
+        //Verifica se o obj se encontra dentro da area de trabalho
         isInsideCanvas: function(obj){
             var canvasBBox = pitch.getBBox();
             var objectBBox = obj.getBBox();
             var objectPartiallyOutside = !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y2) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y2);
             return !(objectPartiallyOutside);
         },
-
-
+        //verifica se a ligacao ja existe
+        checkLine: function(source,target){
+            for (var i = DragFunctions.lines.length - 1; i >= 0; i--) {
+                if(DragFunctions.lines[i].source = source && DragFunctions.lines[i].target == target){
+                    return true;
+                }
+            };
+            return false;
+        },
+        //Pesquisa um set Raphael e devolve o seu node do array nodes
+        getElement: function(shape){
+            for (var i = DragFunctions.nodes.length - 1; i >= 0; i--) {
+                if(DragFunctions.nodes[i].items[0] == shape){
+                    return DragFunctions.nodes[i];
+                }
+            };
+        },
+        //Adiciona Capacidades de drag and drop ao comSet(Para objectos da área de trabalho)
         addDragAndDropCapabilityToSet: function(compSet) {
             compSet.drag(this.move, this.start, this.up, compSet, compSet, compSet);
         },
-
+        //Adiciona capacidade de drag and drop ao compset(Para objectos da pallete)
         addDragAndDropCapabilityToPaletteOption:function (compSet) {
             compSet.drag(this.move, this.paletteStart, this.paletteUp, compSet, compSet, compSet);
         }
@@ -150,7 +186,7 @@ var loadPalette = function(paper){
     optionsSet.push(paletteBorder);
     var i = 1;
     var paletteYOffset = 20;
-    var imageTextTopMargin = 15;
+    var imageTextTopMargin = 10;
 
     for(var optionName in paletteOptions){
         var paletteOption = paletteOptions[optionName];

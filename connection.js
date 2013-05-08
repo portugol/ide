@@ -7,7 +7,7 @@ var Connection = function (r, source, target){
     var self = this;
     this.shape.line.dblclick(function (){
         self.shape.line.remove();
-       });
+    });
 };
 
 
