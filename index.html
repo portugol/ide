@@ -1,28 +1,58 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta chartset="utf-8" />
-		<title>PORTUGOL - IDE</title>
-		<link rel="stylesheet" href="style.css" type="text/css" media="screen">
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-		<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="./toolbar.js"></script>
+		<script type="text/javascript" src="./raphael.js"></script>  
 		<script src="raphael-min.js"></script>
 		<script src="connection.js"></script>
+		<script src="DragFunctions.js"></script>
 		<script src="node.js"></script>
-		<script src="nodev.js"></script>
 		<script src="graph.js"></script>
-		<script src="editor.js"></script>
-		<script src="toolbar.js"></script>
+		
+		<style>
+			body{
+                background-color: #F1F1F1;
+            }
+            #toolbar{  
+                background-color: #C0C0C0;
+                height:80px;
+                border: 10px solid #aaa; 
+                border-radius: 25px;   
+            }  
+            #main { 
+                    width: 100%;
+                    height: 85%;
+                    margin-left: 0 auto;
+            }
+            #work{
+                width: 88%;
+                height: 100%;
+                margin-right: 170px;
+                float: right;
+            }
+            #sidebar{
+                background-color: #C0C0C0;
+                width:150px;
+                height:500px;
+                border: 10px solid #aaa; 
+                border-radius: 25px;
+                float:right;
+                }
+
+			#canvas{
+				border: 1px solid black;
+				width: 50%;
+				height: 100%;
+				float: left;
+
+
+			}
+		</style>
 	</head>
-	<body>
-		<div id="pallete">
-			<a id="btninicio">Inicio</a><br>
-			<a id="btnescrever">Escrever</a><br>
-			<a id="btnfim">Fim</a><br>
-			<a id="btnenviar">Enviar</a><br>
-			<a id="btnexecute">Executar</a><br>
-		</div>
-		<div id="paper"></div>
-		<div id="console">OUTPUT:<br> </div>
+	<body oncontextmenu="return false;">
+		<div id="canvas"></div>
+		<div id="sidebar"></div>
+		
+		
 	</body>
 </html>
