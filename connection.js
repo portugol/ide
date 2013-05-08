@@ -5,9 +5,10 @@ var Connection = function (r, source, target){
     this.shape = r.connection(this.source, this.target,"#0000FF");
 
     var self = this;
-    this.shape.line.dblclick(function (){
+    //COLOCAR A REMOVER DO ARRAY GRAPH E LINES DO DRAGFUNCTIONS
+    /*this.shape.line.dblclick(function (){
         self.shape.line.remove();
-    });
+    });*/
 };
 
 

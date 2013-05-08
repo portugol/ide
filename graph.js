@@ -36,7 +36,7 @@ Graph.prototype.remove = function(node){
                 if(this.nodes[j]!= undefined){
                     if(this.nodes[j].next == node){
                         //apaga o atributo next dos nodes com referência ao node removido
-                        delete this.nodes[j].next ;
+                        this.nodes[j].next = null;
                     }
                 }
             }

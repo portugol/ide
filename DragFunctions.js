@@ -3,6 +3,7 @@ var graph;
 window.onload = function (){
     paper = Raphael('canvas', '100%','100%');
     pitch = loadPitch(paper);
+    bin = paper.rect(pitch.getBBox().width,50,50,50).attr({"fill": "red"});
     graph = new Graph(paper);
     loadPalette(paper);         
 };
@@ -82,10 +83,8 @@ var DragFunctions = {
             
            graph.add(this.node);
            DragFunctions.nodes.push(this);
-
            //funçaõ para remocao do no selecionado
            /*this.dblclick(function (){
-                var aux = -1;
                 for (var i = DragFunctions.lines.length; i--;) {
                     if(DragFunctions.lines[i].source.items[0] == this || DragFunctions.lines[i].target.items[0] == this || DragFunctions.lines[i].source.items[1] == this || DragFunctions.lines[i].target.items[1] == this) {
                         graph.removeline(DragFunctions.lines[i]);
@@ -109,19 +108,40 @@ var DragFunctions = {
                     };
                 });
             }
+            if(bin.isPointInside(this.xx,this.yy)){
+                for (var i = DragFunctions.lines.length; i--;) {
+                    var shape = this.items[0];
+                    if(DragFunctions.lines[i].source.items[0] == shape || DragFunctions.lines[i].target.items[0] == shape || DragFunctions.lines[i].source.items[1] == shape || DragFunctions.lines[i].target.items[1] == shape) {
+                        graph.removeline(DragFunctions.lines[i]);
+                        DragFunctions.lines[i].shape.line.remove();
+                        DragFunctions.lines.splice(i, 1);
+                    }
+                } 
+                graph.remove(this.node);
+                this.remove();
+                DragFunctions.nodes.splice(DragFunctions.findNode(this), 1);  
+            }
             this.animate({"opacity": 1}, 500);
         } else if(e.which == 3 && paper.getElementByPoint(this.xx,this.yy) != null) {
+            //procura o elemento pelas coordenadas do rato
             var nn = paper.getElementByPoint(this.xx,this.yy);
+            //caso seja selecionado o texto, muda-se para o path
             if(nn.type == 'text') {
                 nn = nn.prev;
             }
+            //se nn estiver definido e não for ele mesmo
             if(nn != undefined && this != DragFunctions.getElement(nn)){
                 //caso ainda nao exista linha ja definida
-                if(!DragFunctions.checkLine(this, DragFunctions.getElement(nn))){
+                if(!DragFunctions.checkLine(this, DragFunctions.getElement(nn)) && !DragFunctions.checkLine(DragFunctions.getElement(nn),this)){
                     var linha = new Connection(paper, this, DragFunctions.getElement(nn));
                     DragFunctions.lines.push(linha);
                     graph.lines.push(linha);
                 }
+                /*if(nn.items == undefined){
+                    var linha = new Connection(paper, this, nn);
+                    DragFunctions.lines.push(linha);
+                    graph.lines.push(linha);
+                }*/
             }
         }
     },
@@ -135,7 +155,7 @@ var DragFunctions = {
         //verifica se a ligacao ja existe
         checkLine: function(source,target){
             for (var i = DragFunctions.lines.length - 1; i >= 0; i--) {
-                if(DragFunctions.lines[i].source = source && DragFunctions.lines[i].target == target){
+                if(DragFunctions.lines[i].source == source && DragFunctions.lines[i].target == target){
                     return true;
                 }
             };
@@ -164,8 +184,8 @@ var paletteOptions = {
          "end"    :{type:2, color:"yellow", path:"M0,15 C0,15 0,0 15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 C15,30 0,30 0,15 Z"},
          "write"  :{type:3, color:"yellow", path:"M20,0 L100,0 L100,70 L0,70 L0,20 L20,0 Z"},
          "read"   :{type:4, color:"yellow", path:"M20,0 L100,0 L80,70 L0,70 L20,0 Z"},
-         "if"     :{type:5, color:"yellow", path:"M50,0 L100,50 L50,100 L0,50 L50,0 Z"},
          "process":{type:6, color:"yellow", path:"M0,0 L100,0 L100,70 L0,70 L0,0 Z"},
+         "if"     :{type:5, color:"yellow", path:"M50,0 L100,50 L50,100 L0,50 L50,0 Z"},
          "return" :{type:7, color:"yellow", path:"M0,15 L15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 L0,15 Z"},
          "join"   :{type:8, color:"yellow", path:"M0,15 C0,15 0,0 15,0 C15,0 30,0 30,15 C30,15 30,30 15,30 C15,30 0,30 0,15  Z"},
          "comment":{type:9, color:"yellow", path:"M0,0 L100,0 L100,50 L30,50 L20,60 L10,50 L0,50 L0,0 z"}
@@ -187,7 +207,6 @@ var loadPalette = function(paper){
     var i = 1;
     var paletteYOffset = 20;
     var imageTextTopMargin = 10;
-
     for(var optionName in paletteOptions){
         var paletteOption = paletteOptions[optionName];
         var image = paper.path(paletteOption.path).attr({"fill": paletteOption.color});
