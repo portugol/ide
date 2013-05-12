@@ -1,5 +1,5 @@
 // ┌────────────────────────────────────────────────────────────────────┐ \\
-// │ node.js - CODEBY                                                   │ \\
+// │ editor.js - CODEBY                                                 │ \\
 // ├────────────────────────────────────────────────────────────────────┤ \\
 // │ 																    │ \\
 // │ Copyright © 2013 - ESTT - ESCOLA SUPERIOR DE TECNOLOGIA DE TOMAR   │ \\
@@ -19,19 +19,64 @@
 // │              João Mauricio   n.º 16499                             │ \\
 // └────────────────────────────────────────────────────────────────────┘ \\
 
-/*
-*
-*node.js
-*This class represent the node in the flowchart is the Data Structure for Portugol
-*
-*Node recives as paramenters
-*type: type of the node
-*data: data of the node
-*
-*/
-var Node = function (type, data){
-	this.type = type;
-	if(data !== undefined || data !== null){
-		this.data = data;
-	}
-};
+$(window).on('ready', function(){
+
+	//Cria Raphael paper
+	//temos que por a dimensao do paper dinamico
+	paper = Raphael('canvas', 700, 700);
+
+	//Cria a espaco de trablho para a criacao do fluxograma
+	var flowspace = new FlowSpace(paper);
+
+	//Cria a Palette DragnDrop
+	var palette = new Palette(paper, flowspace.getWorkSpace());
+
+	//var Drag = new DragFunctions();
+
+	$('#btnvalidar').on('click', function (){
+		var socket = io.connect('http://localhost:8080');
+		socket.on('connect', function (){
+			console.log('CONNECTED');
+			//var aux = Drag.graph.extract();
+			var aux = flowspace.graph.extract();
+			console.log('teste' + flowspace.graph.extract());
+			var aux1 = {};
+			aux1.root = aux;
+			
+			socket.emit('flowchart', JSON.stringify(aux1));
+
+			socket.on('validate', function (data){
+				console.log(data);
+			});
+		});
+	});
+
+	$('#btnexecute').on('click', function (){
+		var socket = io.connect('http://localhost:8080');
+		socket.on('connect', function (){
+			console.log('CONNECTED');
+			//var aux = Drag.graph.extract();
+			var aux = flowspace.graph.extract();
+			var aux1 = {};
+			aux1.root = aux;
+			console.log(aux1);
+			
+			socket.emit('execute', JSON.stringify(aux1));
+
+	       	socket.on('execute', function (data){
+	       		console.log(data);
+	       	});
+	       	socket.on('done', function (data){
+	       		console.log('OUTPUT:' + data);
+	       		//var aux2 = document.getElementById('console');
+	       		//aux2.innerHTML = aux2.innerHTML + data;
+			});
+		});
+	});
+
+	$('#btnTESTE').on('click', function() {
+		console.log('ENVIAR PARA BASE DE DADOS');
+		console.log(flowspace);
+	});
+
+});
