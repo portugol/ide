@@ -1,8 +1,47 @@
+// ┌────────────────────────────────────────────────────────────────────┐ \\
+// │ connection.js - CODEBY                                             │ \\
+// ├────────────────────────────────────────────────────────────────────┤ \\
+// │                                                                    │ \\
+// │ Copyright © 2013 - ESTT - ESCOLA SUPERIOR DE TECNOLOGIA DE TOMAR   │ \\
+// │                                                                    │ \\
+// ├────────────────────────────────────────────────────────────────────┤ \\
+// │ DEVELOP FOR: LEI - LICENCIATURA ENGENHARIA INFORMATICA             │ \\
+// │              PSI - PROJECTO SISTEMAS INFORMACAO 2012/2013          │ \\
+// │                                                                    │ \\
+// │          BY: Jorge Martins   n.º 13683                             │ \\
+// │              Rafael Costa    n.º 13686                             │ \\
+// │              André Candido   n.º 14019                             │ \\
+// │              Vasco Palmeirão n.º 14067                             │ \\
+// │              Joni Correia    n.º 15501                             │ \\
+// │              João Graça      n.º 15190                             │ \\
+// │              Pedro Pacheco   n.º 15305                             │ \\
+// │              André Farinha   n.º 16181                             │ \\
+// │              João Mauricio   n.º 16499                             │ \\
+// └────────────────────────────────────────────────────────────────────┘ \\
+
+
+/*
+*
+*connection.js
+*This class do the connection between nodes
+*
+*Connection recives as paramenters
+*r: Raphael Paper Object (canvas)
+*source: start node for the connection
+*target: end node for the connection
+*
+*/
 var Connection = function (r, source, target){
     this.source = source;
     this.target = target;
     this.source.node.next = target.node;
-    this.shape = r.connection(source.shape, target.shape, "#000");
+    this.shape = r.connection(this.source, this.target,"#0000FF");
+
+    var self = this;
+    //COLOCAR A REMOVER DO ARRAY GRAPH E LINES DO DRAGFUNCTIONS
+    /*this.shape.line.dblclick(function (){
+        self.shape.line.remove();
+    });*/
 };
 
 
@@ -53,7 +92,7 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
         line.bg && line.bg.attr({path: path, "arrow-end": "block-wide-long"});
         line.line.attr({path: path, "arrow-end": "block-wide-long"});
     } else {
-        var color = typeof line == "string" ? line : "#000";
+        var color = typeof line == "string" ? line : "#0000FF";
         return {
             bg: bg && bg.split && this.path(path).attr({stroke: bg.split("|")[0], fill: "none", "stroke-width": bg.split("|")[1] || 3, "arrow-end": "block-wide-long"}),
             line: this.path(path).attr({stroke: color, fill: "none", "arrow-end": "block-wide-long"}),
