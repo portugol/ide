@@ -68,6 +68,14 @@ var DragFunctions = {
                 this.node = new Node(this.items[0].data('type'), 'Click me');
                 this.items[1].attr({text: 'Click me'});
                 console.log(this.items[1]);
+                this.dblclick(function (){
+                    var t = prompt('Inserir dados:','');
+                    if(t === undefined || t.length === 0){
+                            t = '';
+                    }
+                    self.attr({text: t});
+                    self.node.data = t;
+            });
             }else if(this.items[0].data('type') === 1 || this.items[0].data('type') === 2){
                 this.node = new Node(this.items[0].data('type'), null);
             }
@@ -91,14 +99,7 @@ var DragFunctions = {
                 DragFunctions.nodes.splice(DragFunctions.findNode(this), 1);  
             });*/
 
-            this.dblclick(function (){
-                    var t = prompt('Inserir dados:','');
-                    if(t === undefined || t.length === 0){
-                            t = '';
-                    }
-                    self.attr({text: t});
-                    self.node.data = t;
-            });
+            
             
 
             
