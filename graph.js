@@ -4,80 +4,67 @@ var Graph = function (r){
     this.r = r;
     self = this;
 };
-
-Graph.prototype.add = function (nodev){
-    if (this.root === undefined) {
-        this.root = nodev;
-    }else{
-        this.lines.push(new Connection(this.r, this.nodes[this.nodes.length-1], nodev));
+//adiciona um node ao graph
+Graph.prototype.add = function (node){
+    //caso não exista root e o node seja do tipo inicio atribui a raiz ao node
+    if (this.root === undefined && node.type == '1') {
+        this.root = node;
     }
-    this.nodes.push(nodev);
-
-    for (var i = 0; i < this.nodes.length; i++) {
-        //console.log("Graph Shape: ",this.nodes[i].shape);
-        this.nodes[i].shape.drag(this.move,this.dragger, this.up);
-    };
-
-
-    //console.log(nodev);
-    if (nodev.node.type == 3 || nodev.node.type == 5) {
-          nodev.shape.dblclick(function (){
-          var t = prompt('Inserir dados:','');
-          if(t === undefined || t.length === 0){
-            t = 'Click me';
-          }
-          nodev.node.data = t;
-          nodev.shape[1].attr({
-              text: t
-          });
-       });
-    };
-
+    //adiciona ao array de nodes
+    this.nodes.push(node);
 };
 
-var self = {};
+Graph.prototype.removeline = function(line){
+    //para todas as linhas
+    for(var i = 0; i < this.lines.length;i++){
+        //procura todas as linhas que sejam iguais a linha a remover
+        if(line == this.lines[i]){
+            this.lines.splice(i,1);
+        }
+    }
+}
+Graph.prototype.remove = function(node){
+    //caso o node removido seja a raíz, coloca a raíz não definida
+    if(node == this.root){
+      this.root = undefined;
+    }
+    //para todos os nós do graph
+    for(var i = 0; i < this.nodes.length; i++){
+        if(node == this.nodes[i]){
+            //procura todos os nodes que tenham como referência next ao node removido
+            for(var j = 0; j < this.nodes.length; j++){
+                if(this.nodes[j]!= undefined){
+                    if(this.nodes[j].next == node){
+                        //apaga o atributo next dos nodes com referência ao node removido
+                        this.nodes[j].next = null;
+                    }
+                }
+            }
 
-
-Graph.prototype.dragger = function (x, y){
-    //console.log("Drag: ",this.node);
-    if (this.type !== 'text'){
-        this.lastdx ? this.odx += this.lastdx : this.odx = 0;
-        this.lastdy ? this.ody += this.lastdy : this.ody = 0;
-        this.next.lastdx ? this.next.odx += this.next.lastdx : this.next.odx = 0;
-        this.next.lastdy ? this.next.ody += this.next.lastdy : this.next.ody = 0;
-        this.animate({"fill-opacity": 0.2}, 500);
-        this.next.animate({"fill-opacity": 0.2}, 500);
-    }   
-};
-
-
-Graph.prototype.move = function (dx, dy){
-    //console.log("Move: ",this.type);
-    if (this.type !== 'text'){
-        this.transform("T"+(dx+this.odx)+","+(dy+this.ody));
-        this.next.transform("T"+(dx+this.odx)+","+(dy+this.ody));
-        this.lastdx = dx;
-        this.lastdy = dy;
-        this.next.lastdx = dx;
-        this.next.lastdy = dy;        
-    };
-    for (var i = self.lines.length; i--;) {
-            self.r.connection(self.lines[i].shape);
-        };
-};
-
-
-Graph.prototype.up = function (){
-    console.log("Up: ",this.type);
-    if (this.type !== 'text'){
-        this.animate({"fill-opacity": 1}, 500);
-        this.next.animate({"fill-opacity": 1}, 500);
-    };
+            //remove o node
+            this.nodes.splice(i,1);
+        }
+    }
 }
 
-
-Graph.prototype.extract = function (){
-    console.log("EXTRACT");
-    console.log(this.root.node);
-    return this.root.node;
+Graph.prototype.setData = function(node, data){
+    console.log('entrou');
+    /*for(var i = 0; i < this.nodes.length; i++){
+        if(this.nodes[i] == node){
+            console.log(this.nodes[i]);
+        }
+    }*/
 };
+
+/*Graph.prototype.extract = function (){
+    for (var i = 0; i < this.nodes.length; i++) {
+        delete this.nodes[i].shape[1];
+        delete this.nodes[i].shape;
+        delete this.nodes[i].r;
+    };
+    for(var i = 0; i < this.lines.length; i++){
+        delete this.lines[i].shape;
+        delete this.lines[i].r;
+    };
+    return this;
+};*/
