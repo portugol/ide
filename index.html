@@ -1,21 +1,76 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="raphael-min.js"></script>
-		<script src="connection.js"></script>
-		<script src="DragFunctions.js"></script>
-		<script src="node.js"></script>
-		<script src="graph.js"></script>
 		<style>
 			#canvas{
-				border: 1px solid black;
-				width: 100%;
-				height: 100%;
+				width: 500px;
+				height: 600px;
 				float: left;
 			}
+			#console{
+				float: left;
+				border: 1px solid black;
+				height: 500px;
+				width: 200px;
+			}
 		</style>
+		
 	</head>
 	<body oncontextmenu="return false;">
+		<div id="toolbar"> 
+			<a id="btnvalidar">Validar</a>
+			<a id="btnexecute">Executar</a>
+		</div>
 		<div id="canvas"></div>
+		<div id="console">OUTPUT:<br> </div>
 	</body>
+	<script src="jquery.min.js"></script>
+	<script src="raphael-min.js"></script>
+	<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+	<script src="connection.js"></script>
+	<script src="DragFunctions.js"></script>
+	<script src="node.js"></script>
+	<script src="graph.js"></script>
+	<<script>
+			$(window).on('ready', function(){
+
+				var Drag = new DragFunctions();
+			/*			
+				$('#btnvalidar').on('click', function (){
+					var socket = io.connect('http://localhost:8080');
+					socket.on('connect', function (){
+						var aux = Drag.graph.extract();
+						var aux1 = {};
+						aux1.root = aux;
+						
+						socket.emit('flowchart', JSON.stringify(aux1));
+
+						socket.on('validate', function (data){
+							console.log(data.result);
+						});
+					});
+				});
+				
+				$('#btnexecute').on('click', function (){
+					var socket = io.connect('http://localhost:8080');
+					socket.on('connect', function (){
+						var aux = Drag.graph.extract();
+						var aux1 = {};
+						aux1.root = aux;
+						console.log(aux1);
+						
+						socket.emit('execute', JSON.stringify(aux1));
+
+			           	socket.on('execute', function (data){
+			           		console.log(data);
+			           	});
+			           	socket.on('done', function (data){
+			           		console.log('OUTPUT:' + data);
+			           		var aux2 = document.getElementById('console');
+			           		aux2.innerHTML = aux2.innerHTML + data;
+						});
+					});
+				});*/
+			})
+		</script>
 </html>
