@@ -5,7 +5,7 @@ window.onload = function (){
     w=w-285;
     var h = window.innerHeight;
     paper = Raphael('canvas','100%','100%');
-    pitch = loadPitch(paper, w, h).attr({fill: "url('panel.png')" , stroke: "black"});
+    pitch = loadPitch(paper, w, h).attr({fill: "url('./img/panel.png')" , stroke: "black"});
 
     bin = paper.rect(w-60,50,75,90).attr({"fill": "none", stroke: "none"}); //pitch.getBBox().width
 
