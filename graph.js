@@ -30,13 +30,26 @@ Graph.prototype.remove = function(node){
     }
     //para todos os nós do graph
     for(var i = 0; i < this.nodes.length; i++){
+        //se for a remover
         if(node == this.nodes[i]){
             //procura todos os nodes que tenham como referência next ao node removido
             for(var j = 0; j < this.nodes.length; j++){
+                //se o no estiver definido
                 if(this.nodes[j]!= undefined){
                     if(this.nodes[j].next == node){
                         //apaga o atributo next dos nodes com referência ao node removido
                         this.nodes[j].next = null;
+                    }
+                    //se for do tipo if verifica para ambas as referências
+                    if(this.nodes[j].type == 6){
+                        //verifica para o caso verdade
+                        if(this.nodes[j].nexttrue == node){
+                            this.nodes[j].nexttrue = null;
+                        }
+                        //verifica para o caso falso
+                        if(this.nodes[j].nextfalse == node){
+                            this.nodes[j].nextfalse = null;
+                        }
                     }
                 }
             }
@@ -47,24 +60,10 @@ Graph.prototype.remove = function(node){
     }
 }
 
-Graph.prototype.setData = function(node, data){
-    console.log('entrou');
-    /*for(var i = 0; i < this.nodes.length; i++){
-        if(this.nodes[i] == node){
-            console.log(this.nodes[i]);
-        }
-    }*/
+/*
+*   Metodo que retorna a estrutura do fluxograma em JSON
+*   para ser enviado para o Core
+*/
+Graph.prototype.extract = function (){
+    return this.root;
 };
-
-/*Graph.prototype.extract = function (){
-    for (var i = 0; i < this.nodes.length; i++) {
-        delete this.nodes[i].shape[1];
-        delete this.nodes[i].shape;
-        delete this.nodes[i].r;
-    };
-    for(var i = 0; i < this.lines.length; i++){
-        delete this.lines[i].shape;
-        delete this.lines[i].r;
-    };
-    return this;
-};*/
