@@ -1,37 +1,64 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="UTF-8" />
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+	    <title>PORTUGOL - IDE</title>
+	    <meta name="description" content="Blueprint: Slide and Push Menus" />
+	    <meta name="keywords" content="sliding menu, pushing menu, navigation, responsive, menu, css, jquery" />
+	    <meta name="author" content="Codrops" />
+	    <link rel="shortcut icon" href="../favicon.ico">
+	    <link rel="stylesheet" type="text/css" href="css/default.css" />
+	    <link rel="stylesheet" type="text/css" href="css/component.css" />
+	    <script src="js/modernizr.custom.js"></script>
+
+		<script src="jquery.min.js"></script>
+		<script src="raphael-min.js"></script>
+		<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+		<script src="connection.js"></script>
+		<script src="DragFunctions.js"></script>
+		<script src="node.js"></script>
+		<script src="graph.js"></script>
+
 		<style>
+			body{
+                background-color: #F1F1F1;
+            }
+            #toolbar{  
+                background-color: #C0C0C0;
+                height:80px;
+                border: 10px solid #aaa; 
+                border-radius: 25px;   
+            }  
+            #work{
+                width: 88%;
+                height: 100%;
+                margin-right: 160px;
+                float: right;
+            }
+            #sidebar{
+                background-color: #C0C0C0;
+                width:50px;
+                height:675px;
+                border: 5px solid #aaa; 
+                border-radius: 25px;
+                float:right;
+                }
+
 			#canvas{
-				width: 500px;
-				height: 600px;
+				border: 0px solid black;
+				width: 100%;
+				height: 100%;
 				float: left;
+
 			}
-			#console{
-				float: left;
-				border: 1px solid black;
-				height: 500px;
-				width: 200px;
-			}
+            textarea{
+                resize: none;
+            }
 		</style>
-		
-	</head>
-	<body oncontextmenu="return false;">
-		<div id="toolbar"> 
-			<a id="btnvalidar">Validar</a>
-			<a id="btnexecute">Executar</a>
-		</div>
-		<div id="canvas"></div>
-		<div id="console">OUTPUT:<br> </div>
-	</body>
-	<script src="jquery.min.js"></script>
-	<script src="raphael-min.js"></script>
-	<script src="http://localhost:8080/socket.io/socket.io.js"></script>
-	<script src="connection.js"></script>
-	<script src="DragFunctions.js"></script>
-	<script src="node.js"></script>
-	<script src="graph.js"></script>
-	<<script>
+
+		<script>
 			$(window).on('ready', function(){
 
 				var Drag = new DragFunctions();
@@ -73,4 +100,104 @@
 				});*/
 			})
 		</script>
+
+		<script src="js/classie.js"></script>
+	</head>
+
+	<body class="cbp-spmenu-push" oncontextmenu="return false;">
+        <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
+            <h3>Memoria</h3>
+            <div>
+            <table border="1">
+                <tr>
+                  <td>var</td>
+                  <td>data</td>
+                </tr>
+                  <td>var</td>
+                  <td>data</td>
+                </tr>
+               </table>
+            </div>        
+        </nav>
+        <nav class="cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom " id="cbp-spmenu-s4">
+            <h3>Consola</h3>
+            <div id="console">
+                <!--<input class="FormElement" name="term" id="term" type="text">!-->
+                <textarea rows="3" cols="20">Console></textarea>
+            </div>
+        </nav>
+        <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
+            <h3>ToolBox</h3>
+            <a href="#"id="showBottom"><img src="./img/icon002.png"> Tools</a> 
+            <a href=""><img src="./img/icon003.png"> Apagar</a>
+            <a href=""><img src="./img/icon004.png"> Enviar</a>
+        </nav>
+
+
+        
+        <!--<div class="container">
+            <header class="clearfix">
+            
+            </header>
+            <div class="principal">!-->
+                <!-- imprimir o portugol-->
+                <div class="xpto" id="canvas"></div>
+       <!-- </div>!-->
+        <!-- Classie - class helper functions by @desandro https://github.com/desandro/classie -->
+        <script src="js/classie.js"></script>
+        <script>
+            var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
+                menuLeft2 = document.getElementById( 'cbp-spmenu-s5' ),
+                menuRight = document.getElementById( 'cbp-spmenu-s2' ),
+                menuTop = document.getElementById( 'cbp-spmenu-s3' ),
+                menuBottom = document.getElementById( 'cbp-spmenu-s4' ),
+                showLeft = document.getElementById( 'showLeft' ),
+                showRight = document.getElementById( 'showRight' ),
+                showTop = document.getElementById( 'showTop' ),
+                showBottom = document.getElementById( 'showBottom' ),
+                showLeftPush = document.getElementById( 'showLeftPush' ),
+                showRightPush = document.getElementById( 'showRightPush' ),
+                body = document.body;
+            /*showLeft.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                classie.toggle( menuLeft2, 'inactive' );
+                disableOther( 'showLeft2' );
+            };
+            /*showLeft2.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuLeft2, 'cbp-spmenu-open' );
+                classie.toggle( menuLeft, 'inactive' );
+                disableOther( 'showLeft' );
+            };*/
+            /*showRight.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuRight, 'cbp-spmenu-open' );
+                disableOther( 'showRight' );
+            };
+            /*showTop.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuTop, 'cbp-spmenu-open' );
+                disableOther( 'showTop' );
+            };*/
+            showBottom.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                classie.toggle( menuBottom, 'cbp-spmenu-open' );
+                disableOther( 'showBottom' );
+            };
+            /*showLeftPush.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( body, 'cbp-spmenu-push-toright' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                disableOther( 'showLeftPush' );
+            };
+            showRightPush.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( body, 'cbp-spmenu-push-toleft' );
+                classie.toggle( menuRight, 'cbp-spmenu-open' );
+                disableOther( 'showRightPush' );
+            };*/
+        </script>
+    </body>
 </html>

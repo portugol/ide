@@ -1,11 +1,23 @@
 var paper;
 var graph;
 var pitch;
+var bin;
 
 var DragFunctions = function(){
+    var w = window.innerWidth;
+    w=w-285;
+    var h = window.innerHeight;
     paper = Raphael('canvas', '100%','100%');
     graph = new Graph(paper); 
-    pitch = loadPitch(paper);
+    pitch = loadPitch(paper, w, h).attr({fill: "url('./img/panel.png')" , stroke: "black"});
+
+    bin = paper.rect(w-70,40,100,100).attr({"fill": "none", stroke: "none"}); //pitch.getBBox().width
+
+    rec = paper.path("M20.826,5.75l0.396,1.188c1.54,0.575,2.589,1.44,2.589,2.626c0,2.405-4.308,3.498-8.312,3.498c-4.003,0-8.311-1.093-8.311-3.498c0-1.272,1.21-2.174,2.938-2.746l0.388-1.165c-2.443,0.648-4.327,1.876-4.327,3.91v2.264c0,1.224,0.685,2.155,1.759,2.845l0.396,9.265c0,1.381,3.274,2.5,7.312,2.5c4.038,0,7.313-1.119,7.313-2.5l0.405-9.493c0.885-0.664,1.438-1.521,1.438-2.617V9.562C24.812,7.625,23.101,6.42,20.826,5.75zM11.093,24.127c-0.476-0.286-1.022-0.846-1.166-1.237c-1.007-2.76-0.73-4.921-0.529-7.509c0.747,0.28,1.58,0.491,2.45,0.642c-0.216,2.658-0.43,4.923,0.003,7.828C11.916,24.278,11.567,24.411,11.093,24.127zM17.219,24.329c-0.019,0.445-0.691,0.856-1.517,0.856c-0.828,0-1.498-0.413-1.517-0.858c-0.126-2.996-0.032-5.322,0.068-8.039c0.418,0.022,0.835,0.037,1.246,0.037c0.543,0,1.097-0.02,1.651-0.059C17.251,18.994,17.346,21.325,17.219,24.329zM21.476,22.892c-0.143,0.392-0.69,0.95-1.165,1.235c-0.474,0.284-0.817,0.151-0.754-0.276c0.437-2.93,0.214-5.209-0.005-7.897c0.881-0.174,1.708-0.417,2.44-0.731C22.194,17.883,22.503,20.076,21.476,22.892zM11.338,9.512c0.525,0.173,1.092-0.109,1.268-0.633h-0.002l0.771-2.316h4.56l0.771,2.316c0.14,0.419,0.53,0.685,0.949,0.685c0.104,0,0.211-0.017,0.316-0.052c0.524-0.175,0.808-0.742,0.633-1.265l-1.002-3.001c-0.136-0.407-0.518-0.683-0.945-0.683h-6.002c-0.428,0-0.812,0.275-0.948,0.683l-1,2.999C10.532,8.77,10.815,9.337,11.338,9.512z");
+    rec.attr({fill: "#236B8E", stroke: "none"});
+    rec.translate(w-85,30);
+    rec.scale(4,4,0,0);
+
     loadPalette(paper); 
     this.graph = graph;
 };
@@ -38,7 +50,7 @@ var dragndrop = {
     //acção provocada quando se levanta o rato de um objecto da area de trabalho
     up: function (e) {
         if(e.which == 1) {
-            if(!dragndrop.isInsideCanvas(this)){
+            if(!dragndrop.isInside(this,pitch)){
                 this.animate({transform:'...T' + (-this.ox) + ',' + (-this.oy)}, 1000, "bounce", function() {
                     for (var i = dragndrop.lines.length; i--;) {
                         paper.connection(dragndrop.lines[i].shape);
@@ -46,17 +58,32 @@ var dragndrop = {
                 });
             }
             this.animate({"opacity": 1}, 500);
-        } else if(e.which == 3 && paper.getElementByPoint(this.xx,this.yy) != null) {
+            if(dragndrop.isInside(this,bin)){
+                 for (var i = dragndrop.lines.length; i--;) {
+                    console.log(this)
+                    console.log(dragndrop.lines[i].source)
+                    if(dragndrop.lines[i].source == this || dragndrop.lines[i].target == this || dragndrop.lines[i].source == this || dragndrop.lines[i].target == this) {
+                        graph.removeline(dragndrop.lines[i]);
+                        dragndrop.lines[i].shape.line.remove();
+                        dragndrop.lines.splice(i, 1);
+                    }
+                } 
+                graph.remove(this.node);
+                dragndrop.nodes.splice(dragndrop.getElement(this), 1);  
+                this.remove(); 
+            }
+        } else{
+            if(e.which == 3 && paper.getElementByPoint(this.xx,this.yy) != null) {
             //procura o elemento pelas coordenadas do rato
             var nn = paper.getElementByPoint(this.xx,this.yy);
             //se nn estiver definido e não for ele mesmo
             if(nn != undefined && this != dragndrop.getElement(nn)){
                 //caso ainda nao exista linha ja definida
-                console.log(dragndrop.checkLine(this, dragndrop.getElement(nn)))
                 if(!dragndrop.checkLine(this, dragndrop.getElement(nn))){
-                    var linha = new Connection(paper, this, dragndrop.getElement(nn));
-                    dragndrop.lines.push(linha);
-                    graph.lines.push(linha);
+                        var linha = new Connection(paper, this, dragndrop.getElement(nn));
+                        dragndrop.lines.push(linha);
+                        graph.lines.push(linha);
+                    }
                 }
             }
         }
@@ -75,17 +102,21 @@ var dragndrop = {
     },
 
     paletteUp: function(){
-        if(!dragndrop.isInsideCanvas(this)){
+        if(!dragndrop.isInside(this,pitch)){
             this.remove();
         }else{
             this.undrag();
 
             dragndrop.addDragAndDropCapabilityToSet(this);
+            dragndrop.addHover(this);
             this.animate({"opacity":1}, 500);
             var self=this;
+
+            id = this[0].id;
+
             var type = this.items[0].data('type');
             if(type === 3 || type === 4 || type === 5 || type === 6){
-                this.node = new Node(type, 'Click me');
+                this.node = new Node(type, 'Click me', id);
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
                     var t = prompt('Inserir dados:','');
@@ -100,10 +131,10 @@ var dragndrop = {
                     this.node.nexttrue = null;
                 }
             }else if(type === 1 || type === 2 || type === 7){
-                this.node = new Node(type, null);
+                this.node = new Node(type, null, id);
             }
               //funçaõ para remocao do no selecionado
-           this.dblclick(function (){
+          /* this.dblclick(function (){
                 for (var i = dragndrop.lines.length; i--;) {
                     if(dragndrop.lines[i].source.items[0] == this || dragndrop.lines[i].target.items[0] == this || dragndrop.lines[i].source.items[1] == this || dragndrop.lines[i].target.items[1] == this) {
                         graph.removeline(dragndrop.lines[i]);
@@ -114,15 +145,15 @@ var dragndrop = {
                 graph.remove(self.node);
                 dragndrop.nodes.splice(dragndrop.getElement(self), 1);  
                 self.remove();
-            });
+            });*/
            graph.add(this.node);
            dragndrop.nodes.push(this);
         }
     },
     
     //Verifica se o obj se encontra dentro da area de trabalho
-    isInsideCanvas: function(obj){
-        var canvasBBox = pitch.getBBox();
+    isInside: function(obj,obj2){
+        var canvasBBox = obj2.getBBox();
         var objectBBox = obj.getBBox();
         var objectPartiallyOutside = !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x, objectBBox.y2) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y) || !Raphael.isPointInsideBBox(canvasBBox, objectBBox.x2, objectBBox.y2);
         return !(objectPartiallyOutside);
@@ -225,27 +256,35 @@ var dragndrop = {
     addDragAndDropCapabilityToPaletteOption:function (compSet) {
         compSet.drag(this.move, this.paletteStart, this.paletteUp, compSet, compSet, compSet);
     },
-  };
+
+    addHover: function(compSet){
+        compSet.hover(function(){
+            compSet.items[0].attr({stroke: '#000'});
+        },function(){
+            compSet.items[0].attr({stroke: 'none'});
+        });
+    }
+};
 
 var paletteShapes = {
-    "begin"  :{type:1, color:"#ffcc00", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
-    "end"    :{type:2, color:"#999999", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
-    "write"  :{type:3, color:"yellow", path:"M10,0 L50,0 L50,35 L0,35 L0,10 L10,0 Z"},
-    "read"   :{type:4, color:"yellow", path:"M10,0 L50,0 L40,30 L0,30 L10,0 Z"},
-    "process":{type:5, color:"yellow", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z"},
-    "if"     :{type:6, color:"yellow", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z"},
-    "join"   :{type:7, color:"yellow", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z"},
-    "return" :{type:8, color:"yellow", path:"M0,15 L15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 L0,15 Z"},
+    "begin"  :{type:1, color:"#EE7621", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
+    "end"    :{type:2, color:"#CD661D", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
+    "write"  :{type:3, color:"#A2CD5A", path:"M10,0 L50,0 L50,35 L0,35 L0,10 L10,0 Z"},
+    "read"   :{type:4, color:"#A2CD5A", path:"M10,0 L50,0 L40,30 L0,30 L10,0 Z"},
+    "process":{type:5, color:"orange", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z"},
+    "if"     :{type:6, color:"#236B8E", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z"},
+    "join"   :{type:7, color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z"},
+    "return" :{type:8, color:"brown", path:"M0,15 L15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 L0,15 Z"},
     "comment":{type:9, color:"yellow", path:"M0,0 L100,0 L100,50 L30,50 L20,60 L10,50 L0,50 L0,0 z"}
 };
-
-
-var loadPitch = function (paper) {
-    var pitch = paper.rect(0,0,400,800);
-    pitch.attr({stroke: "blue"});
-    pitch.transform("...T110,0");
+var loadPitch = function (paper, xmax, ymax) {
+    var pitch = paper.rect(120,0,xmax,ymax,10); // 10 para os cantos 
+    pitch.attr({stroke: "orange"});
+    pitch.transform("...T110,");
     return pitch;
 };
+
+
 /*
     Carrega a palete
 */
@@ -254,7 +293,8 @@ var loadPalette = function(paper){
     //inicia o set com os objectos da palette
     ShapesSet = paper.set();
     //cria um rectangulo que sera usado como border
-    var border = paper.rect (0,0,100,pitch.getBBox().height).attr({stroke:"blue"});
+    //var border = paper.rect (0,0,100,pitch.getBBox().height).attr({stroke:"blue"});
+    var border = paper.rect(0,0,110,pitch.getBBox().height,10).attr({stroke: "black"});
     //adiciona a border a palette
     ShapesSet.push(border);
     
@@ -264,7 +304,7 @@ var loadPalette = function(paper){
     //criacao da shape "begin"
     var begin = paletteShapes['begin'];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
-    var beginimg = paper.path(begin.path).attr({"fill":begin.color});
+    var beginimg = paper.path(begin.path).attr({"fill":begin.color,stroke:"none"});
     //cria a ancora para adicionar ao fundo do objecto
     var beginanch = paper.rect(beginimg.getBBox().width/2,beginimg.getBBox().height,2,2).attr({stroke:"none", fill:"none"});
     //adiciona o tipo ao objecto
@@ -286,7 +326,7 @@ var loadPalette = function(paper){
     //criacao da shape "end"
     var end = paletteShapes['end'];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
-    var endimg = paper.path(end.path).attr({"fill":end.color});
+    var endimg = paper.path(end.path).attr({"fill":end.color,stroke:"none"});
     //cria a ancora para adicionar ao topo do objecto
     var endanch = paper.rect(endimg.getBBox().width/2,-(endimg.getBBox().height/2)+5,2,2).attr({stroke:"none", fill:"none"});
     //adiciona o tipo ao objecto
@@ -308,7 +348,7 @@ var loadPalette = function(paper){
     //criacao da shape "write"
     var write = paletteShapes['write'];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
-    var writeimg = paper.path(write.path).attr({"fill":write.color});
+    var writeimg = paper.path(write.path).attr({"fill":write.color,stroke:"none"});
     //cria a ancora para adicionar ao topo do objecto
     var writeanch = paper.rect(writeimg.getBBox().width/2,-(writeimg.getBBox().height/2)+13,2,2).attr({stroke:"none", fill:"none"});
     //cria uma segunda ancora para adicionar ao fundo do objecto
@@ -332,7 +372,7 @@ var loadPalette = function(paper){
     //criacao da shape "read"
     var read = paletteShapes['read'];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
-    var readimg = paper.path(read.path).attr({"fill":write.color});
+    var readimg = paper.path(read.path).attr({"fill":write.color,stroke:"none"});
     //cria a ancora para adicionar ao topo do objecto
     var readanch = paper.rect(readimg.getBBox().width/2,-(readimg.getBBox().height/2)+11,2,2).attr({stroke:"none",fill:"none"});
     //cria uma segunda ancora para adicionar ao fundo do objecto
@@ -356,7 +396,7 @@ var loadPalette = function(paper){
     //criacao da shape "process"
     var process = paletteShapes['process'];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
-    var processimg = paper.path(process.path).attr({"fill":process.color});
+    var processimg = paper.path(process.path).attr({"fill":process.color,stroke:"none"});
     //cria a ancora para adicionar ao topo objecto
     var processanch = paper.rect(processimg.getBBox().width/2,-(processimg.getBBox().height/2)+13,2,2).attr({stroke:"none",fill:"none"});
     //cria uma segunda ancora para adicionar fundo ao objecto
@@ -380,15 +420,15 @@ var loadPalette = function(paper){
     //criacao da shape "if"
     var ifshape = paletteShapes['if'];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
-    var ifimg = paper.path(ifshape.path).attr({"fill":ifshape.color});
+    var ifimg = paper.path(ifshape.path).attr({"fill":ifshape.color,stroke:"none"});
     //cria a ancora para adicionar ao topo objecto
-    var ifanch = paper.rect(ifimg.getBBox().width/2-1,-(ifimg.getBBox().height/2)+17,2,2).attr({stroke:"none",fill:"blue"});
+    var ifanch = paper.rect(ifimg.getBBox().width/2-1,-(ifimg.getBBox().height/2)+17,2,2).attr({stroke:"none",fill:"none"});
     //cria uma segunda ancora para adicionar ao lado do objecto
-    var ifanch1 = paper.rect(-(ifimg.getBBox().width/2)+17,(ifimg.getBBox().height/2)-1,2,2).attr({stroke:"none",fill:"blue"});
+    var ifanch1 = paper.rect(-(ifimg.getBBox().width/2)+17,(ifimg.getBBox().height/2)-1,2,2).attr({stroke:"none",fill:"none"});
     //cria uma terceira ancora para adicionar ao outro lado do objecto
-    var ifanch2 = paper.rect(ifimg.getBBox().width+6,(ifimg.getBBox().height/2)-1,2,2).attr({stroke:"none",fill:"blue"});
+    var ifanch2 = paper.rect(ifimg.getBBox().width+6,(ifimg.getBBox().height/2)-1,2,2).attr({stroke:"none",fill:"none"});
     //cria uma quarta ancora para adicionar ao fundo do objecto
-    var ifanch3 = paper.rect(ifimg.getBBox().width/2-1,(ifimg.getBBox().height)+6,2,2).attr({stroke:"none",fill:"blue"});
+    var ifanch3 = paper.rect(ifimg.getBBox().width/2-1,(ifimg.getBBox().height)+6,2,2).attr({stroke:"none",fill:"none"});
     //adiciona o tipo ao objecto
     ifimg.data('type',ifshape.type);
     //cria o texto do objecto
@@ -401,21 +441,20 @@ var loadPalette = function(paper){
     ShapesSet.push(ifset);
     //da ao objecto criado a capacidade de DragnDrop
     dragndrop.addDragAndDropCapabilityToPaletteOption(ifset);
-    console.log(ifset)
-
+    
     /*
         SHAPE 'JOIN'
     */
     //criacao da shape 'join'
     var join = paletteShapes['join'];
     //cria o objecto rapahael atraves do path guardado, com a cor guardada
-    var joinimg = paper.path(join.path).attr({"fill":join.color});
+    var joinimg = paper.path(join.path).attr({"fill":join.color,stroke:"none"});
     //cria uma segunda ancora para adicionar ao lado do objecto 
-    var joinanch1 = paper.rect(-joinimg.getBBox().width/2+5,joinimg.getBBox().height/2,2,2).attr({stroke:"none",fill:"red"});
+    var joinanch1 = paper.rect(-joinimg.getBBox().width/2+5,joinimg.getBBox().height/2,2,2).attr({stroke:"none",fill:"none"});
     //cria uma terceira ancora para adicionar ao outro lado do objecto
-    var joinanch2 = paper.rect(joinimg.getBBox().width,joinimg.getBBox().height/2,2,2).attr({stroke:"none",fill:"red"});
+    var joinanch2 = paper.rect(joinimg.getBBox().width,joinimg.getBBox().height/2,2,2).attr({stroke:"none",fill:"none"});
     //cria uma quarta ancora para adicionar no fundo do objecto
-    var joinanch3 = paper.rect(joinimg.getBBox().width/2-1,joinimg.getBBox().height,2,2).attr({stroke:"none",fill:"red"});
+    var joinanch3 = paper.rect(joinimg.getBBox().width/2-1,joinimg.getBBox().height,2,2).attr({stroke:"none",fill:"none"});
     //adiciona o tipo ao objecto
     joinimg.data('type',join.type);
     //cria o texto do objecto 
