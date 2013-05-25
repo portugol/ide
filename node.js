@@ -1,8 +1,8 @@
-var Node = function (type, data){
+var Node = function (type, data, uuid){
 	this.type = type;
-	if(data !== undefined){
+	//console.log(uuid);
+	this.uuid = uuid;
+	if(data !== undefined || data !== null){
 		this.data = data;
 	}
-	console.log('type: ' + this.type);
-	console.log('data: ' + this.data);
 };
