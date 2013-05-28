@@ -62,8 +62,9 @@
 			$(window).on('ready', function(){
 
 				var Drag = new DragFunctions();
-			/*			
-				$('#btnvalidar').on('click', function (){
+						
+				$('#btnValidar').on('click', function (){
+                    Drag.graph.extract();
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
 						var aux = Drag.graph.extract();
@@ -78,7 +79,7 @@
 					});
 				});
 				
-				$('#btnexecute').on('click', function (){
+				$('#btnExecutar').on('click', function (){
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
 						var aux = Drag.graph.extract();
@@ -93,11 +94,12 @@
 			           	});
 			           	socket.on('done', function (data){
 			           		console.log('OUTPUT:' + data);
-			           		var aux2 = document.getElementById('console');
-			           		aux2.innerHTML = aux2.innerHTML + data;
+                            var aux2 = document.getElementById('consola');
+                            aux2.innerHTML = aux2.innerHTML + data;
+
 						});
 					});
-				});*/
+				});
 			})
 		</script>
 
@@ -123,14 +125,15 @@
             <h3>Consola</h3>
             <div id="console">
                 <!--<input class="FormElement" name="term" id="term" type="text">!-->
-                <textarea rows="3" cols="20">Console></textarea>
+                <textarea id="consola" rows="5" cols="50">Consola: </textarea>
             </div>
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
             <h3>ToolBox</h3>
-            <a href="#"id="showBottom"><img src="./img/icon002.png"> Tools</a> 
-            <a href=""><img src="./img/icon003.png"> Apagar</a>
-            <a href=""><img src="./img/icon004.png"> Enviar</a>
+            <a id="showBottom"><img src="./img/icon002.png"> Tools</a> 
+            <a id=""><img src="./img/icon003.png"> Apagar</a>
+            <a id="btnValidar">Validar</a>
+            <a id="btnExecutar"><img src="./img/icon004.png"> Executar</a>
         </nav>
 
 

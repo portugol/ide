@@ -2,12 +2,13 @@ var Graph = function (r){
     this.nodes = [];
     this.lines = [];
     this.r = r;
+    this.root = null;
     self = this;
 };
 //adiciona um node ao graph
 Graph.prototype.add = function (node){
     //caso não exista root e o node seja do tipo inicio atribui a raiz ao node
-    if (this.root === undefined && node.type == '1') {
+    if (this.root === null && node.type == '1') {
         this.root = node;
     }
     //adiciona ao array de nodes
@@ -65,5 +66,72 @@ Graph.prototype.remove = function(node){
 *   para ser enviado para o Core
 */
 Graph.prototype.extract = function (){
-    return this.root;
+    var first = [];
+    for (var i = this.nodes.length - 1; i >= 0; i--) {
+        this.nodes[i].processed = false;
+        if(this.nodes[i].type == 1){
+            first.push(this.nodes[i]);
+        }
+    };
+    //console.log(first)
+    var json = '{"root":';
+    //this.Json(json,this.root,1);
+
+    if (this.root != null) {
+        var xpto = this.Json(json,this.root,1, function (json) {
+            json+='}';
+            console.log(json);
+        });
+        return xpto;
+    }else{
+        return "Inicio não Presente";
+    }
 };
+
+Graph.prototype.Json = function(json, node, counter, callback){
+    var self = this;
+    json += '{"type": ' + node.type;
+    json += ',"data": "' + node.data+'"';
+    json += ',"uuid": ' + node.uuid;
+    
+    if(node.processed == true){
+        for (var i = 0; i < counter; i++) {
+            json+='}';
+        };
+        callback(json);
+        return;
+    }
+    node.processed = true;
+
+    if(node.type == 6){
+        json += ',"nexttrue":';
+        this.Json(json, node.nexttrue, 0, function(jsonn) {
+            json = jsonn;
+            json += '}';
+            json += ',"nextfalse":';
+            self.Json(json, node.nextfalse, 0, function(jsonn){
+                json = jsonn;
+                json+='}';
+
+                for (var i = 0; i < counter; i++) {
+                    json += '}';
+                };
+            }); 
+        });
+    }else{
+        if(node.next == null){
+            for (var i = 0; i < counter; i++) {
+                json += '}';
+            };
+        }else{
+            json += ',"next":';
+            this.Json(json,node.next,counter+1, function(jsonn){
+                json = jsonn;
+            });
+        }
+    }
+
+    callback(json);
+
+};
+
