@@ -27,7 +27,7 @@ Graph.prototype.removeline = function(line){
 Graph.prototype.remove = function(node){
     //caso o node removido seja a raíz, coloca a raíz não definida
     if(node == this.root){
-      this.root = undefined;
+      this.root = null;
     }
     //para todos os nós do graph
     for(var i = 0; i < this.nodes.length; i++){
@@ -73,21 +73,25 @@ Graph.prototype.extract = function (){
             first.push(this.nodes[i]);
         }
     };
-    //console.log(first)
-    var json = '{"root":';
-    //this.Json(json,this.root,1);
-
-    if (this.root != null) {
-        var xpto = this.Json(json,this.root,1, function (json) {
-            json+='}';
-            console.log(json);
-        });
-        return xpto;
+    var jjson = '[{"root": ';
+    var json="";
+    if (this.root != null) {        
+        for (var i = first.length - 1; i >= 0; i--) { 
+            var aux = this.Json(json,first[i],1, function (json){
+                jjson += json;
+            });
+            json = '},{"root": ';
+        };
+        jjson +='}]';
+        return jjson;
     }else{
         return "Inicio não Presente";
     }
 };
-
+/*
+* Metodo recursivo que devolve a estrutura do fluxograma em JSON
+* de acordo com o root que é enviado(json)
+*/
 Graph.prototype.Json = function(json, node, counter, callback){
     var self = this;
     json += '{"type": ' + node.type;
@@ -95,9 +99,7 @@ Graph.prototype.Json = function(json, node, counter, callback){
     json += ',"uuid": ' + node.uuid;
     
     if(node.processed == true){
-        for (var i = 0; i < counter; i++) {
-            json+='}';
-        };
+        json+=this.fecha(counter)
         callback(json);
         return;
     }
@@ -112,17 +114,12 @@ Graph.prototype.Json = function(json, node, counter, callback){
             self.Json(json, node.nextfalse, 0, function(jsonn){
                 json = jsonn;
                 json+='}';
-
-                for (var i = 0; i < counter; i++) {
-                    json += '}';
-                };
+                json+=self.fecha(counter)
             }); 
         });
     }else{
         if(node.next == null){
-            for (var i = 0; i < counter; i++) {
-                json += '}';
-            };
+            json+=this.fecha(counter)
         }else{
             json += ',"next":';
             this.Json(json,node.next,counter+1, function(jsonn){
@@ -134,4 +131,10 @@ Graph.prototype.Json = function(json, node, counter, callback){
     callback(json);
 
 };
-
+Graph.prototype.fecha = function(counter){
+    var aux = "";
+    for (var i = 0; i < counter; i++) {
+        aux += '}';
+    };
+    return aux;
+};
