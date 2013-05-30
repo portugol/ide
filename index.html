@@ -128,34 +128,56 @@
                         var aux = aux2[i].root;
                         console.log("Root do array[",i,"] :",aux);
                     
+                    //enquanto não houver um "end"
                         while (aux.type != '2'){
                             aux = aux.next;
 
+                            //se apanhar um if
                             if (aux.type == '6'){
                                 console.log("Entrou no if: ",aux);
                                 
                                 var nf = aux.nextfalse;
                                 console.log("Primeiro Next false: ",nf);
+                                
+                                var nt = aux.nexttrue;
 
                                 while (nf.type != '7'){
                                     nf = nf.next;
                                     console.log("False: ",nf);
+                                    if(nf.type == '6'){
+                                        //condicao para sair
+                                        nf.type = 7;
+                                    }
                                 }
-
-                                var nt = aux.nexttrue;
+                                
                                 console.log("Primeiro Next true: ",nt);
                                 
-                                while (nt.type != '7'){
-                                    nt = nt.next;
-                                    console.log("True: ",nt);
+                                //é necessário este if para não causar problemas, caso não seja do tipo "end"
+                                if(nt.type != '2'){
+                                    //enquanto nao for do tipo "join"
+                                    while (nt.type != '7'){
+                                        nt = nt.next;
+                                        console.log("True: ",nt);
+                                    }
                                 }
+
+                                //se for join
                                 if (nt.type == '7') {
                                     console.log("Mostra join: ",nt);
                                     aux = nt.next;
                                 };
 
+                                //se for end, sai do while
+                                if (nt.type == '2') {
+                                    console.log("Mostra end: ",nt);
+                                    aux = nt;
+                                };
+
                             }
-                            console.log("Depois do if: ",aux);
+
+                            if (nt.type != '2'){
+                                console.log("Depois do if: ",aux);
+                            }
                         }
                     }
                 });
