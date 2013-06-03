@@ -64,15 +64,12 @@
 				var Drag = new DragFunctions();
 						
 				$('#btnValidar').on('click', function (){
-                    Drag.graph.extract();
+                    var json = Drag.graph.extract();
+                    console.log(json);
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
-						var aux = Drag.graph.extract();
-						var aux1 = {};
-						aux1.root = aux;
-						
-						socket.emit('flowchart', JSON.stringify(aux1));
-
+						socket.emit('flowchart', JSON.stringify((json)));
+                        console.log(json);
 						socket.on('validate', function (data){
 							console.log(data.result);
 						});

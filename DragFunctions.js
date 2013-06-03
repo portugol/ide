@@ -85,6 +85,7 @@ var dragndrop = {
                 }
             }
         }
+        dragndrop.highlight(this[0].id)
     },
 
     paletteStart:function () {
@@ -111,9 +112,9 @@ var dragndrop = {
             var self=this;
 
             id = this[0].id;
-
             var type = this.items[0].data('type');
-            if(type === 3 || type === 4 || type === 5 || type === 6 || (type === 1 && graph.root != null) || type === 8){
+
+            if(type != 7){
                 this.node = new Node(type, 'Click me', id);
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
@@ -128,7 +129,7 @@ var dragndrop = {
                     this.node.nextfalse = null;
                     this.node.nexttrue = null;
                 }
-            }else if(type === 1 || type === 2 || type === 7){
+            }else{
                 this.node = new Node(type, null, id);
             }
               //funçaõ para remocao do no selecionado
@@ -264,19 +265,32 @@ var dragndrop = {
         },function(){
             compSet.items[0].attr({stroke: 'none'});
         });
+    },
+    highlight: function(id){
+        var node;
+        
+        for (var i = this.nodes.length - 1; i >= 0; i--) {
+            if(id === this.nodes[i][0].id){
+                node = this.nodes[i][0];
+            }
+        };
+        //colocar a cor do objecto a vermelho
+        node.animate({ fill: "red" }, 300,'bounce',function(){ node.animate({fill: paletteShapes[node.data('type')].color},300,function(){node.animate({ fill: "red" }, 300,'bounce',function(){ node.animate({"fill":paletteShapes[node.data('type')].color},300,function(){ node.animate({"fill":"red"},300)})})})});
+        //repor cor original
+        //node.attr({"fill":paletteShapes[node.data('type')].color});
+                
     }
 };
 
 var paletteShapes = {
-    "begin"  :{type:1, color:"#EE7621", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
-    "end"    :{type:2, color:"#CD661D", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
-    "write"  :{type:3, color:"#A2CD5A", path:"M10,0 L50,0 L50,35 L0,35 L0,10 L10,0 Z"},
-    "read"   :{type:4, color:"#A2CD5A", path:"M10,0 L50,0 L40,30 L0,30 L10,0 Z"},
-    "process":{type:5, color:"orange", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z"},
-    "if"     :{type:6, color:"#236B8E", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z"},
-    "join"   :{type:7, color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z"},
-    "return" :{type:8, color:"brown", path:"M0,7 L7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 L0,7 Z"},
-    "comment":{type:9, color:"yellow", path:"M0,0 L100,0 L100,50 L30,50 L20,60 L10,50 L0,50 L0,0 z"}
+    1 :{color:"#EE7621", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
+    2 :{color:"#CD661D", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
+    3 :{color:"#A2CD5A", path:"M10,0 L50,0 L50,35 L0,35 L0,10 L10,0 Z"},
+    4 :{color:"#A2CD5A", path:"M10,0 L50,0 L40,30 L0,30 L10,0 Z"},
+    5 :{color:"orange", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z"},
+    6 :{color:"#236B8E", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z"},
+    7 :{color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z"},
+    8 :{color:"brown", path:"M0,7 L7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 L0,7 Z"},
 };
 var loadPitch = function (paper, xmax, ymax) {
     var pitch = paper.rect(140,0,xmax,ymax,10); // 10 para os cantos 
@@ -303,13 +317,13 @@ var loadPalette = function(paper){
        SHAPE 'BEGIN'
     */
     //criacao da shape "begin"
-    var begin = paletteShapes['begin'];
+    var begin = paletteShapes[1];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
     var beginimg = paper.path(begin.path).attr({"fill":begin.color,stroke:"none"});
     //cria a ancora para adicionar ao fundo do objecto
     var beginanch = paper.rect(beginimg.getBBox().width/2,beginimg.getBBox().height,2,2).attr({stroke:"none", fill:"none"});
     //adiciona o tipo ao objecto
-    beginimg.data('type',begin.type);
+    beginimg.data('type',1);
     //cria o texto do objecto
     var begintext = paper.text(beginimg.getBBox().width/2, (beginimg.getBBox().height/2),"Início").attr({fill:'black'});   
     //junta todos os objectos num set
@@ -325,15 +339,15 @@ var loadPalette = function(paper){
        SHAPE 'END'
     */
     //criacao da shape "end"
-    var end = paletteShapes['end'];
+    var end = paletteShapes[2];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
     var endimg = paper.path(end.path).attr({"fill":end.color,stroke:"none"});
     //cria a ancora para adicionar ao topo do objecto
     var endanch = paper.rect(endimg.getBBox().width/2,-(endimg.getBBox().height/2)+5,2,2).attr({stroke:"none", fill:"none"});
     //adiciona o tipo ao objecto
-    endimg.data('type',end.type);
+    endimg.data('type',2);
     //cria o texto do objecto
-    var endtext = paper.text(beginimg.getBBox().width/2-10, (beginimg.getBBox().height/2-5),"Fim").attr({fill:'black'});  
+    var endtext = paper.text(beginimg.getBBox().width/2-13, (beginimg.getBBox().height/2-5),"Fim").attr({fill:'black'});  
     //junta todos os objectos num set
     var endset = paper.set([endimg,endtext,endanch]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
@@ -347,7 +361,7 @@ var loadPalette = function(paper){
        SHAPE 'WRITE'
     */
     //criacao da shape "write"
-    var write = paletteShapes['write'];
+    var write = paletteShapes[3];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
     var writeimg = paper.path(write.path).attr({"fill":write.color,stroke:"none"});
     //cria a ancora para adicionar ao topo do objecto
@@ -355,7 +369,7 @@ var loadPalette = function(paper){
     //cria uma segunda ancora para adicionar ao fundo do objecto
     var writeanch1 = paper.rect(writeimg.getBBox().width/2,writeimg.getBBox().height+3,2,2).attr({stroke:"none", fill:"none"});
     //adiciona o tipo ao objecto
-    writeimg.data('type',write.type);
+    writeimg.data('type',3);
     //cria o texto do objecto
     var writetext = paper.text(writeimg.getBBox().width/2,writeimg.getBBox().height/2,"Escrita").attr({fill:'black'});
     //junta todos os objectos num set
@@ -371,7 +385,7 @@ var loadPalette = function(paper){
        SHAPE 'READ'
     */
     //criacao da shape "read"
-    var read = paletteShapes['read'];
+    var read = paletteShapes[4];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
     var readimg = paper.path(read.path).attr({"fill":write.color,stroke:"none"});
     //cria a ancora para adicionar ao topo do objecto
@@ -379,7 +393,7 @@ var loadPalette = function(paper){
     //cria uma segunda ancora para adicionar ao fundo do objecto
     var readanch1 = paper.rect(readimg.getBBox().width/2,readimg.getBBox().height+2,2,2).attr({stroke:"none",fill:"none"})
     //adiciona o tipo ao objecto
-    readimg.data('type',read.type)
+    readimg.data('type',4)
     //cria o texto do objecto
     var readtext = paper.text(readimg.getBBox().width/2,readimg.getBBox().height/2,"Leitura").attr({fill:"black"});
     //junta todos os objectos num set
@@ -395,7 +409,7 @@ var loadPalette = function(paper){
        SHAPE 'PROCESS'
     */
     //criacao da shape "process"
-    var process = paletteShapes['process'];
+    var process = paletteShapes[5];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
     var processimg = paper.path(process.path).attr({"fill":process.color,stroke:"none"});
     //cria a ancora para adicionar ao topo objecto
@@ -403,7 +417,7 @@ var loadPalette = function(paper){
     //cria uma segunda ancora para adicionar fundo ao objecto
     var processanch1 =paper.rect(processimg.getBBox().width/2,processimg.getBBox().height+2,2,2).attr({stroke:"none",fill:"none"});
     //adiciona o tipo ao objecto
-    processimg.data('type',process.type);
+    processimg.data('type',5);
     //cria o texto do objecto
     var processtext = paper.text(processimg.getBBox().width/2, processimg.getBBox().height/2,"Processo").attr({fill:"black"});
     //junta todos os objectos num set
@@ -419,7 +433,7 @@ var loadPalette = function(paper){
         SHAPE 'IF'
     */
     //criacao da shape "if"
-    var ifshape = paletteShapes['if'];
+    var ifshape = paletteShapes[6];
     //cria o objecto raphael atraves do path guardado, com a cor guardada
     var ifimg = paper.path(ifshape.path).attr({"fill":ifshape.color,stroke:"none"});
     //cria a ancora para adicionar ao topo objecto
@@ -431,7 +445,7 @@ var loadPalette = function(paper){
     //cria uma quarta ancora para adicionar ao fundo do objecto
     var ifanch3 = paper.rect(ifimg.getBBox().width/2-1,(ifimg.getBBox().height)+6,2,2).attr({stroke:"none",fill:"none"});
     //adiciona o tipo ao objecto
-    ifimg.data('type',ifshape.type);
+    ifimg.data('type',6);
     //cria o texto do objecto
     var iftext = paper.text(ifimg.getBBox().width/2, ifimg.getBBox().height/2,"Decisão").attr({fill:"black"});
     //junta todos os objectos num set
@@ -447,7 +461,7 @@ var loadPalette = function(paper){
         SHAPE 'JOIN'
     */
     //criacao da shape 'join'
-    var join = paletteShapes['join'];
+    var join = paletteShapes[7];
     //cria o objecto rapahael atraves do path guardado, com a cor guardada
     var joinimg = paper.path(join.path).attr({"fill":join.color,stroke:"none"});
     //cria uma segunda ancora para adicionar ao lado do objecto 
@@ -457,7 +471,7 @@ var loadPalette = function(paper){
     //cria uma quarta ancora para adicionar no fundo do objecto
     var joinanch3 = paper.rect(joinimg.getBBox().width/2-1,joinimg.getBBox().height,2,2).attr({stroke:"none",fill:"none"});
     //adiciona o tipo ao objecto
-    joinimg.data('type',join.type);
+    joinimg.data('type',7);
     //cria o texto do objecto 
     var jointext = paper.text(joinimg.getBBox().width/2, joinimg.getBBox().height+8,"Junção").attr({fill:"black"});
     //junta todos os objectos num set
@@ -475,7 +489,7 @@ var loadPalette = function(paper){
         SHAPE 'RETURN'
     */
     //criacao da shape 'return'
-    var returnshape = paletteShapes['return'];
+    var returnshape = paletteShapes[8];
     //cria o objecto rapahael atraves do path guardado, com a cor guardada
     var returnimg = paper.path(returnshape.path).attr({"fill":returnshape.color,stroke:"none"});
     //cria uma segunda ancora para adicionar ao topo do objecto 
@@ -483,7 +497,7 @@ var loadPalette = function(paper){
     //cria uma terceira ancora para adicionar ao fundo do objecto
     var returnanch2 = paper.rect(returnimg.getBBox().width/2,returnimg.getBBox().height+1,2,2).attr({stroke:"none",fill:"none"});
     //adiciona o tipo ao objecto
-    returnimg.data('type',returnshape.type);
+    returnimg.data('type',8);
     //cria o texto do objecto 
     var returntext = paper.text(returnimg.getBBox().width/2, returnimg.getBBox().height/2,"Retorno").attr({fill:"black"});
     //junta todos os objectos num set
@@ -495,3 +509,4 @@ var loadPalette = function(paper){
     //da ao objecto criado a capacidade de DragnDrop
     dragndrop.addDragAndDropCapabilityToPaletteOption(returnset);
   };
+

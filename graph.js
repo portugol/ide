@@ -73,14 +73,14 @@ Graph.prototype.extract = function (){
             first.push(this.nodes[i]);
         }
     };
-    var jjson = '[{"root": ';
+    var jjson = '[{"root":';
     var json="";
     if (this.root != null) {        
         for (var i = first.length - 1; i >= 0; i--) { 
             var aux = this.Json(json,first[i],1, function (json){
                 jjson += json;
             });
-            json = '},{"root": ';
+            json = '},{"root":';
         };
         jjson +='}]';
         return jjson;
@@ -94,9 +94,9 @@ Graph.prototype.extract = function (){
 */
 Graph.prototype.Json = function(json, node, counter, callback){
     var self = this;
-    json += '{"type": ' + node.type;
-    json += ',"data": "' + node.data+'"';
-    json += ',"uuid": ' + node.uuid;
+    json += '{"type":' + node.type;
+    json += ',"data":"' + node.data+'"';
+    json += ',"uuid":' + node.uuid;
     
     if(node.processed == true){
         json+=this.fecha(counter)
@@ -137,4 +137,4 @@ Graph.prototype.fecha = function(counter){
         aux += '}';
     };
     return aux;
-};
+}
