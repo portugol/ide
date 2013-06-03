@@ -90,6 +90,8 @@ var Connection = function (r, source, target){
             }
         }
         if(this.source.node.type == 7){
+            //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
+            this.source.node.next = target.node;
             this.shape = r.connection(this.source.items[3],this.target.items[2],"#005555");
         }
     }

@@ -63,7 +63,8 @@
 
 				var Drag = new DragFunctions();
 						
-				$('#btnValidar').on('click', function (){
+				/*$('#btnValidar').on('click', function (){
+                    Drag.graph.extract();
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
 						var aux = Drag.graph.extract();
@@ -76,30 +77,81 @@
 							console.log(data.result);
 						});
 					});
-				});
+				});*/
+
+            $('#btnValidar').on('click', function (){
+var json = Drag.graph.extract();
+var socket = io.connect('http://localhost:8080');
+socket.on('connect', function (){
+
+socket.emit('flowchart', json);
+
+socket.on('validate', function (data){
+console.log(data.result);
+});
+});
+});
 				
 				$('#btnExecutar').on('click', function (){
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
-						var aux = Drag.graph.extract();
-						var aux1 = {};
-						aux1.root = aux;
-						console.log(aux1);
-						
-						socket.emit('execute', JSON.stringify(aux1));
+						var json = Drag.graph.extract();				
+						socket.emit('execute', json);
 
-			           	socket.on('execute', function (data){
-			           		console.log(data);
-			           	});
-			           	socket.on('done', function (data){
+			           	/*socket.on('done', function (data){
 			           		console.log('OUTPUT:' + data);
                             var aux2 = document.getElementById('consola');
                             aux2.innerHTML = aux2.innerHTML + data;
 
-						});
+						});*/
+                        socket.on('consoleUpdate', function (data){
+                            var parent=document.getElementById('consola');
+                            //parent.innerHTML = data;
+                            parent.appendChild(document.createTextNode("\n"));
+                            parent.appendChild(document.createTextNode(data));
+                        });
+
+                        socket.on('memoryUpdate', function (jsonMemory){
+                            var vars=JSON.parse(jsonMemory);
+                            clearMemory();
+                            fillMemory(vars);
+                        });
 					});
 				});
 			})
+            
+            function clearMemory(){
+                var parent=document.getElementById('memoria');
+                //o cabecalho nao e apagado
+                for(var i = parent.rows.length-1; i > 0;i--){
+                    parent.deleteRow(i);
+                }
+                /*
+                var parent=document.getElementById('memoria');
+                while(parent.hasChildNodes()){
+                    parent.removeChild(parent.firstChild);
+                }*/
+            }
+
+            function fillMemory(vars){
+                for(var i=0; i<vars.length; i++){
+                    addRowMemory(vars[i]);
+                }
+            }
+
+            function addRowMemory(variable){
+                var parent=document.getElementById("memoria");
+                console.log(parent.rows.length);
+                var newRow = parent.insertRow(parent.rows.length);
+                var name = newRow.insertCell(0);
+                var type = newRow.insertCell(1);
+                var value = newRow.insertCell(2);
+                var level = newRow.insertCell(3);
+                name.innerHTML = variable.name_;
+                type.innerHTML = variable.type_;
+                value.innerHTML = variable.value_;
+                level.innerHTML = variable.level_;
+            }
 		</script>
 
 		<script src="js/classie.js"></script>
@@ -108,17 +160,14 @@
 	<body class="cbp-spmenu-push" oncontextmenu="return false;">
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
             <h3>Memoria</h3>
-            <div>
-            <table border="1">
+            <table border="1" id="memoria" style="background-color:#fff; color:#000">
                 <tr>
-                  <td>var</td>
-                  <td>data</td>
+                    <th>Nome</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Nivel</th>
                 </tr>
-                  <td>var</td>
-                  <td>data</td>
-                </tr>
-               </table>
-            </div>        
+            </table>        
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom " id="cbp-spmenu-s4">
             <h3>Consola</h3>
