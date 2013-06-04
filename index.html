@@ -71,7 +71,7 @@
 
         socket.on('consoleUpdate', function (data){
           console.log(data);
-          $("#consola").append("<br/>" + data);
+          $("#consola").append("\n" + data);
         });
 
         socket.on('memoryUpdate', function (jsonMemory){
