@@ -56,6 +56,9 @@ var dragndrop = {
                         paper.connection(dragndrop.lines[i].shape);
                     };
                 });
+            }else{
+                this.node.dx = this.getBBox().x;
+                this.node.dy = this.getBBox().y;
             }
             this.animate({"opacity": 1}, 500);
             if(dragndrop.isInside(this,bin)){
@@ -85,7 +88,6 @@ var dragndrop = {
                 }
             }
         }
-        dragndrop.highlight(this[0].id)
     },
 
     paletteStart:function () {
@@ -115,7 +117,7 @@ var dragndrop = {
             var type = this.items[0].data('type');
 
             if(type != 7){
-                this.node = new Node(type, 'Click me', id);
+                this.node = new Node(type, 'Click me', id,this.getBBox().x,this.getBBox().y);
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
                     var t = prompt('Inserir dados:','');
@@ -130,23 +132,17 @@ var dragndrop = {
                     this.node.nexttrue = null;
                 }
             }else{
-                this.node = new Node(type, null, id);
+                this.node = new Node(type, null, id,this.getBBox().x,this.getBBox().y);
             }
-              //funçaõ para remocao do no selecionado
-          /* this.dblclick(function (){
-                for (var i = dragndrop.lines.length; i--;) {
-                    if(dragndrop.lines[i].source.items[0] == this || dragndrop.lines[i].target.items[0] == this || dragndrop.lines[i].source.items[1] == this || dragndrop.lines[i].target.items[1] == this) {
-                        graph.removeline(dragndrop.lines[i]);
-                        dragndrop.lines[i].shape.line.remove();
-                        dragndrop.lines.splice(i, 1);
-                    }
-                } 
-                graph.remove(self.node);
-                dragndrop.nodes.splice(dragndrop.getElement(self), 1);  
-                self.remove();
-            });*/
            graph.add(this.node);
            dragndrop.nodes.push(this);
+           
+
+           /*var json ='[{"root":{"type":1,"data":"Inicio","uuid":4,"next":{"type":3,"data":"Ola Mundo","uuid":10,"next":{"type":2,"data":"Fim","uuid":7}}}}]' 
+           var aux =JSON.parse(json)
+           console.log(aux)
+           dragndrop.nodetograph(aux[0].root,null)*//
+
         }
     },
     
@@ -277,20 +273,67 @@ var dragndrop = {
         //colocar a cor do objecto a vermelho
         node.animate({ fill: "red" }, 300,'bounce',function(){ node.animate({fill: paletteShapes[node.data('type')].color},300,function(){node.animate({ fill: "red" }, 300,'bounce',function(){ node.animate({"fill":paletteShapes[node.data('type')].color},300,function(){ node.animate({"fill":"red"},300)})})})});
         //repor cor original
-        //node.attr({"fill":paletteShapes[node.data('type')].color});
-                
+        //node.attr({"fill":paletteShapes[node.data('type')].color}); 
+    },
+    jsontographic : function(json){
+        console.log("grafico")
+    },
+    nodetograph : function(node,previous){
+        console.log(node.dx)
+        console.log(node.dy)
+     var shape = this.addShape(node.type,node.data,node.dx,node.dy);
+     shape.node = new Node(node.type,node.data,node.uuid,shape.getBBox().x,shape.getBBox().y);
+     graph.nodes.push(shape.node)
+     console.log(shape)
+/*
+     if(previous != null){
+            var line = new Connection(paper, previous, shape);
+            graph.lines.push(line);
+     }
+     if(node.type == 6){
+            this.nodetograph(node.nextfalse,shape);
+            this.nodetograph(node.nexttrue,shape);
+     }else{
+        if(node.next != null){
+            this.nodetograph(node.next,shape);
+        }else{
+            return;
+        }
+     }
+*/
+    },
+    addShape: function(type,text,dx,dy){
+        for (var i = ShapesSet.length - 1; i >= 1; i--) {
+            if(ShapesSet[i][0].data('type') == type){
+                var newShape = ShapesSet[i];
+                var cloneShape = ShapesSet[i].clone();
+                cloneShape.data('type',type);
+                ShapesSet.exclude(ShapesSet[i]);
+                ShapesSet.push(cloneShape);
+                dragndrop.addDragAndDropCapabilityToPaletteOption(cloneShape);
+            }
+        }
+        newShape.items[1].attr({'text':text});
+        dx = dx-27;
+        dy = dy-paletteShapes[type].yoffset+8;
+        newShape.transform("...T"+dx+","+dy);
+        newShape.undrag();
+        this.addHover(newShape);
+        this.addDragAndDropCapabilityToSet(newShape);
+        this.nodes.push(newShape);
+        return newShape
     }
 };
 
 var paletteShapes = {
-    1 :{color:"#EE7621", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
-    2 :{color:"#CD661D", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z"},
-    3 :{color:"#A2CD5A", path:"M10,0 L50,0 L50,35 L0,35 L0,10 L10,0 Z"},
-    4 :{color:"#A2CD5A", path:"M10,0 L50,0 L40,30 L0,30 L10,0 Z"},
-    5 :{color:"orange", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z"},
-    6 :{color:"#236B8E", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z"},
-    7 :{color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z"},
-    8 :{color:"brown", path:"M0,7 L7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 L0,7 Z"},
+    1 :{color:"#EE7621", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z", yoffset:20},
+    2 :{color:"#CD661D", path:"M0,7 C0,7 0,0 7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 C7,15 0,15 0,7 Z", yoffset:55},
+    3 :{color:"#A2CD5A", path:"M10,0 L50,0 L50,35 L0,35 L0,10 L10,0 Z", yoffset:92},
+    4 :{color:"#A2CD5A", path:"M10,0 L50,0 L40,30 L0,30 L10,0 Z", yoffset:152},
+    5 :{color:"orange", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z", yoffset:208},
+    6 :{color:"#236B8E", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z", yoffset:272},
+    7 :{color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z", yoffset:345},
+    8 :{color:"brown", path:"M0,7 L7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 L0,7 Z", yoffset:385},
 };
 var loadPitch = function (paper, xmax, ymax) {
     var pitch = paper.rect(140,0,xmax,ymax,10); // 10 para os cantos 
@@ -329,7 +372,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var beginset = paper.set([beginimg,begintext,beginanch]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    beginset.transform("S1.5T40," + 20);
+    beginset.transform("S1.5T40," + begin.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "begin"
     ShapesSet.push(beginset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -351,7 +394,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var endset = paper.set([endimg,endtext,endanch]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    endset.transform("S1.5T40," + 55);
+    endset.transform("S1.5T40," + end.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "end"
     ShapesSet.push(endset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -375,7 +418,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var writeset = paper.set([writeimg,writetext,writeanch,writeanch1]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    writeset.transform("S1.5T40," + 92);
+    writeset.transform("S1.5T40," + write.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "write"
     ShapesSet.push(writeset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -399,7 +442,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var readset = paper.set([readimg,readtext,readanch,readanch1]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    readset.transform("S1.5T40," + 152);
+    readset.transform("S1.5T40," + read.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "read"
     ShapesSet.push(readset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -423,7 +466,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var processset = paper.set([processimg,processtext,processanch,processanch1]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    processset.transform("S1.5T40," + 208);
+    processset.transform("S1.5T40," + process.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "process"
     ShapesSet.push(processset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -451,7 +494,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var ifset = paper.set([ifimg,iftext,ifanch,ifanch1,ifanch2,ifanch3]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    ifset.transform("S1.5T40,"+272);
+    ifset.transform("S1.5T40,"+ifshape.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "if"
     ShapesSet.push(ifset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -477,9 +520,9 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var joinset = paper.set([joinimg,joinanch1,joinanch2,joinanch3]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    joinset.transform("S1.5T57,"+345);
+    joinset.transform("S1.5T57,"+join.yoffset);
     //faz um scale de 1,3 e uma translacao para acertar o texto com a palette
-    jointext.transform("S1.5T57,"+345);
+    jointext.transform("S1.5T57,"+join.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "join"
     ShapesSet.push(joinset);
     //da ao objecto criado a capacidade de DragnDrop
@@ -503,7 +546,7 @@ var loadPalette = function(paper){
     //junta todos os objectos num set
     var returnset = paper.set([returnimg,returntext,returnanch1,returnanch2]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    returnset.transform("S1.5T40,"+385);
+    returnset.transform("S1.5T40,"+returnshape.yoffset);
     //adiciona ao set da palette o set criado em cima, que representa a shape "return"
     ShapesSet.push(returnset);
     //da ao objecto criado a capacidade de DragnDrop

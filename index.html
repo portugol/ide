@@ -65,11 +65,12 @@
 						
 				$('#btnValidar').on('click', function (){
                     var json = Drag.graph.extract();
-                    console.log(json);
+                    console.log(JSON.parse(json));
+                    console.log(Drag)
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
-						socket.emit('flowchart', JSON.stringify((json)));
-                        console.log(json);
+						socket.emit('flowchart',json);
+                        console.log(parse(json));
 						socket.on('validate', function (data){
 							console.log(data.result);
 						});
