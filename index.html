@@ -67,16 +67,6 @@
 
         socket.on('connect', function () {
 
-          $('#btnValidar').on('click', function (){
-            var json = Drag.graph.extract();
-            socket.emit('flowchart', json);
-          });
-  				
-  				$('#btnExecutar').on('click', function (){
-  					var json = Drag.graph.extract();				
-  					socket.emit('execute', json);
-  				});
-
           socket.on('validate', function (data){
             console.log(data.result);
           });
@@ -93,8 +83,20 @@
             clearMemory();
             fillMemory(vars);
           });
-          
+
 				});
+
+
+        $('#btnValidar').on('click', function (){
+          var json = Drag.graph.extract();
+          socket.emit('flowchart', json);
+        });
+        
+        $('#btnExecutar').on('click', function (){
+          var json = Drag.graph.extract();        
+          socket.emit('execute', json);
+        });
+        
 			})
             
             function clearMemory(){
