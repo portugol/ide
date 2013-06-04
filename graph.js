@@ -95,9 +95,8 @@ Graph.prototype.extract = function (){
 Graph.prototype.Json = function(json, node, counter, callback){
     var self = this;
     json += '{"type": ' + node.type;
-    json += ',"data": "' + node.data+'"';
+    json += ',"data":'+ JSON.stringify(node.data);
     json += ',"uuid": ' + node.uuid;
-    
     if(node.processed == true){
         json+=this.fecha(counter);
         callback(json);
