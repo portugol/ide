@@ -15,7 +15,7 @@
 
 		<script src="jquery.min.js"></script>
 		<script src="raphael-min.js"></script>
-		<script src="http://localhost:8080/socket.io/socket.io.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
 		<script src="connection.js"></script>
 		<script src="DragFunctions.js"></script>
 		<script src="node.js"></script>
@@ -59,64 +59,41 @@
 		</style>
 
 		<script>
-			$(window).on('ready', function(){
+			$(document).on('ready', function(){
 
 				var Drag = new DragFunctions();
 						
-				/*$('#btnValidar').on('click', function (){
-                    Drag.graph.extract();
-					var socket = io.connect('http://localhost:8080');
-					socket.on('connect', function (){
-						var aux = Drag.graph.extract();
-						var aux1 = {};
-						aux1.root = aux;
-						
-						socket.emit('flowchart', JSON.stringify(aux1));
+        var socket = io.connect('http://localhost:8080');
 
-						socket.on('validate', function (data){
-							console.log(data.result);
-						});
-					});
-				});*/
+        socket.on('connect', function () {
 
-            $('#btnValidar').on('click', function (){
-var json = Drag.graph.extract();
-var socket = io.connect('http://localhost:8080');
-socket.on('connect', function (){
+          $('#btnValidar').on('click', function (){
+            var json = Drag.graph.extract();
+            socket.emit('flowchart', json);
+          });
+  				
+  				$('#btnExecutar').on('click', function (){
+  					var json = Drag.graph.extract();				
+  					socket.emit('execute', json);
+  				});
 
-socket.emit('flowchart', json);
+          socket.on('validate', function (data){
+            console.log(data.result);
+          });
 
-socket.on('validate', function (data){
-console.log(data.result);
-});
-});
-});
-				
-				$('#btnExecutar').on('click', function (){
-					var socket = io.connect('http://localhost:8080');
-					socket.on('connect', function (){
-						var json = Drag.graph.extract();				
-						socket.emit('execute', json);
+          socket.on('consoleUpdate', function (data){
+            var parent=document.getElementById('consola');
+            //parent.innerHTML = data;
+            parent.appendChild(document.createTextNode("\n"));
+            parent.appendChild(document.createTextNode(data));
+          });
 
-			           	/*socket.on('done', function (data){
-			           		console.log('OUTPUT:' + data);
-                            var aux2 = document.getElementById('consola');
-                            aux2.innerHTML = aux2.innerHTML + data;
-
-						});*/
-                        socket.on('consoleUpdate', function (data){
-                            var parent=document.getElementById('consola');
-                            //parent.innerHTML = data;
-                            parent.appendChild(document.createTextNode("\n"));
-                            parent.appendChild(document.createTextNode(data));
-                        });
-
-                        socket.on('memoryUpdate', function (jsonMemory){
-                            var vars=JSON.parse(jsonMemory);
-                            clearMemory();
-                            fillMemory(vars);
-                        });
-					});
+          socket.on('memoryUpdate', function (jsonMemory){
+            var vars=JSON.parse(jsonMemory);
+            clearMemory();
+            fillMemory(vars);
+          });
+          
 				});
 			})
             
