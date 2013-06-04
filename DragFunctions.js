@@ -60,8 +60,6 @@ var dragndrop = {
             this.animate({"opacity": 1}, 500);
             if(dragndrop.isInside(this,bin)){
                  for (var i = dragndrop.lines.length; i--;) {
-                    console.log(this)
-                    console.log(dragndrop.lines[i].source)
                     if(dragndrop.lines[i].source == this || dragndrop.lines[i].target == this || dragndrop.lines[i].source == this || dragndrop.lines[i].target == this) {
                         graph.removeline(dragndrop.lines[i]);
                         dragndrop.lines[i].shape.line.remove();
@@ -115,7 +113,7 @@ var dragndrop = {
             id = this[0].id;
 
             var type = this.items[0].data('type');
-            if(type === 3 || type === 4 || type === 5 || type === 6){
+            if(type === 3 || type === 4 || type === 5 || type === 6 || (type === 1 && graph.root != null) || type === 8){
                 this.node = new Node(type, 'Click me', id);
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
@@ -171,7 +169,7 @@ var dragndrop = {
             return true;
         }
         //caso seja 'end','write','read','process','if' verifica se os alvo ja tem linha para ele definida
-        if(target.node.type < 6){
+        if(target.node.type < 6 || target.node.type == 8){
             //para cada linha existente
             for (var i = dragndrop.lines.length - 1; i >= 0; i--) {
                 //se ja existir ligacao em que o alvo selecionado ja tem uma conecao para ele definida
@@ -204,7 +202,7 @@ var dragndrop = {
             return true;
         }
         //caso seja 'begin','write','read','process','join'
-        if(source.node.type >= 1  && source.node.type <= 5 || source.node.type == 7){
+        if(source.node.type >= 1  && source.node.type <= 5 || source.node.type == 7 || source.node.type == 8){
         //para cada linha existente
         for (var i = dragndrop.lines.length - 1; i >= 0; i--) {
             //se ja existir ligacao em que o alvo selecionado ja tem uma conecao para ele definida
@@ -238,6 +236,9 @@ var dragndrop = {
         var element = 0;
         if(shape.type == 'text'){
             element = 1;
+        }
+        if(shape.type == 'rect'){
+            element = 2;
         }
         for (var i = dragndrop.nodes.length - 1; i >= 0; i--) {
             if(dragndrop.nodes[i].items[element] == shape){
@@ -274,7 +275,7 @@ var paletteShapes = {
     "process":{type:5, color:"orange", path:"M0,0 L50,0 L50,35 L0,35 L0,0 Z"},
     "if"     :{type:6, color:"#236B8E", path:"M25,0 L50,25 L25,50 L0,25 L25,0 Z"},
     "join"   :{type:7, color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z"},
-    "return" :{type:8, color:"brown", path:"M0,15 L15,0 L85,0 C85,0 100,0 100,15 C100,15 100,30 85,30 L15,30 L0,15 Z"},
+    "return" :{type:8, color:"brown", path:"M0,7 L7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 L0,7 Z"},
     "comment":{type:9, color:"yellow", path:"M0,0 L100,0 L100,50 L30,50 L20,60 L10,50 L0,50 L0,0 z"}
 };
 var loadPitch = function (paper, xmax, ymax) {
@@ -310,7 +311,7 @@ var loadPalette = function(paper){
     //adiciona o tipo ao objecto
     beginimg.data('type',begin.type);
     //cria o texto do objecto
-    var begintext = paper.text(beginimg.getBBox().width/2, (beginimg.getBBox().height/2),"Inicio").attr({fill:'black'});   
+    var begintext = paper.text(beginimg.getBBox().width/2, (beginimg.getBBox().height/2),"Início").attr({fill:'black'});   
     //junta todos os objectos num set
     var beginset = paper.set([beginimg,begintext,beginanch]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
@@ -432,7 +433,7 @@ var loadPalette = function(paper){
     //adiciona o tipo ao objecto
     ifimg.data('type',ifshape.type);
     //cria o texto do objecto
-    var iftext = paper.text(ifimg.getBBox().width/2, ifimg.getBBox().height/2,"Se").attr({fill:"black"});
+    var iftext = paper.text(ifimg.getBBox().width/2, ifimg.getBBox().height/2,"Decisão").attr({fill:"black"});
     //junta todos os objectos num set
     var ifset = paper.set([ifimg,iftext,ifanch,ifanch1,ifanch2,ifanch3]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
@@ -458,16 +459,39 @@ var loadPalette = function(paper){
     //adiciona o tipo ao objecto
     joinimg.data('type',join.type);
     //cria o texto do objecto 
-    var jointext = paper.text(joinimg.getBBox().width/2, joinimg.getBBox().height+8,"Juncao").attr({fill:"black"});
+    var jointext = paper.text(joinimg.getBBox().width/2, joinimg.getBBox().height+8,"Junção").attr({fill:"black"});
     //junta todos os objectos num set
     var joinset = paper.set([joinimg,joinanch1,joinanch2,joinanch3]);
     //faz um scale de 1,3 e uma translacao para acertar com a palette
-    joinset.transform("S1.5T57,"+342);
+    joinset.transform("S1.5T57,"+345);
     //faz um scale de 1,3 e uma translacao para acertar o texto com a palette
-    jointext.transform("S1.5T57,"+342);
+    jointext.transform("S1.5T57,"+345);
     //adiciona ao set da palette o set criado em cima, que representa a shape "join"
     ShapesSet.push(joinset);
     //da ao objecto criado a capacidade de DragnDrop
     dragndrop.addDragAndDropCapabilityToPaletteOption(joinset);
 
+    /*
+        SHAPE 'RETURN'
+    */
+    //criacao da shape 'return'
+    var returnshape = paletteShapes['return'];
+    //cria o objecto rapahael atraves do path guardado, com a cor guardada
+    var returnimg = paper.path(returnshape.path).attr({"fill":returnshape.color,stroke:"none"});
+    //cria uma segunda ancora para adicionar ao topo do objecto 
+    var returnanch1 = paper.rect(returnimg.getBBox().width/2,-returnimg.getBBox().height/2+4,2,2).attr({stroke:"none",fill:"none"});
+    //cria uma terceira ancora para adicionar ao fundo do objecto
+    var returnanch2 = paper.rect(returnimg.getBBox().width/2,returnimg.getBBox().height+1,2,2).attr({stroke:"none",fill:"none"});
+    //adiciona o tipo ao objecto
+    returnimg.data('type',returnshape.type);
+    //cria o texto do objecto 
+    var returntext = paper.text(returnimg.getBBox().width/2, returnimg.getBBox().height/2,"Retorno").attr({fill:"black"});
+    //junta todos os objectos num set
+    var returnset = paper.set([returnimg,returntext,returnanch1,returnanch2]);
+    //faz um scale de 1,3 e uma translacao para acertar com a palette
+    returnset.transform("S1.5T40,"+385);
+    //adiciona ao set da palette o set criado em cima, que representa a shape "return"
+    ShapesSet.push(returnset);
+    //da ao objecto criado a capacidade de DragnDrop
+    dragndrop.addDragAndDropCapabilityToPaletteOption(returnset);
   };
