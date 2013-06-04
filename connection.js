@@ -32,9 +32,6 @@ var Connection = function (r, source, target){
             }
         };
     }
-    /*if(!(target.node.type == 7 || target.node.type == 6)){
-        aux = 2;
-    }*/
     //se a shape de origem nao for do tipo 'if' ou join'
     if(source.node.type != 6 && source.node.type != 7){
         //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
@@ -97,9 +94,6 @@ var Connection = function (r, source, target){
     }
 
     var self = this;
-    //source.toFront();
-    //target.toFront();
-
 
     //COLOCAR A REMOVER DO ARRAY GRAPH E LINES DO DRAGFUNCTIONS
    /* this.shape.line.dblclick(function (){

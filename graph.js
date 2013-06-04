@@ -97,6 +97,8 @@ Graph.prototype.Json = function(json, node, counter, callback){
     json += '{"type":' + node.type;
     json += ',"data":"' + node.data+'"';
     json += ',"uuid":' + node.uuid;
+    json += ',"dx":'   + node.dx;
+    json += ',"dy":'   + node.dy;
     
     if(node.processed == true){
         json+=this.fecha(counter)

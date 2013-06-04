@@ -88,6 +88,8 @@ var dragndrop = {
                 }
             }
         }
+        //console.log(this[0].id)
+        dragndrop.highlight(this[0].id);
     },
 
     paletteStart:function () {
@@ -138,10 +140,10 @@ var dragndrop = {
            dragndrop.nodes.push(this);
            
 
-           /*var json ='[{"root":{"type":1,"data":"Inicio","uuid":4,"next":{"type":3,"data":"Ola Mundo","uuid":10,"next":{"type":2,"data":"Fim","uuid":7}}}}]' 
+           var json ='[{"root":{"type":1,"data":"Inicio","uuid":4,"dx":207.5,"dy":88.25,"next":{"type":3,"data":"Ola Mundo","uuid":10,"dx":225.5,"dy":181.25,"next":{"type":2,"data":"Fim","uuid":7,"dx":260.5,"dy":278.25}}}}]' 
            var aux =JSON.parse(json)
-           console.log(aux)
-           dragndrop.nodetograph(aux[0].root,null)*//
+           //console.log(aux)
+           //dragndrop.nodetograph(aux[0].root,null)
 
         }
     },
@@ -285,9 +287,9 @@ var dragndrop = {
      shape.node = new Node(node.type,node.data,node.uuid,shape.getBBox().x,shape.getBBox().y);
      graph.nodes.push(shape.node)
      console.log(shape)
-/*
      if(previous != null){
             var line = new Connection(paper, previous, shape);
+            dragndrop.lines.push(line);
             graph.lines.push(line);
      }
      if(node.type == 6){
@@ -300,7 +302,6 @@ var dragndrop = {
             return;
         }
      }
-*/
     },
     addShape: function(type,text,dx,dy){
         for (var i = ShapesSet.length - 1; i >= 1; i--) {
