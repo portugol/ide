@@ -65,24 +65,20 @@
 						
         var socket = io.connect();
 
-        socket.on('connect', function () {
+        socket.on('validate', function (data){
+          console.log(data.result);
+        });
 
-          socket.on('validate', function (data){
-            console.log(data.result);
-          });
+        socket.on('consoleUpdate', function (data){
+          console.log(data);
+          $("#consola").append("<br/>" + data);
+        });
 
-          socket.on('consoleUpdate', function (data){
-            console.log(data);
-            $("#consola").append("<br/>" + data);
-          });
-
-          socket.on('memoryUpdate', function (jsonMemory){
-            var vars=JSON.parse(jsonMemory);
-            clearMemory();
-            fillMemory(vars);
-          });
-
-				});
+        socket.on('memoryUpdate', function (jsonMemory){
+          var vars=JSON.parse(jsonMemory);
+          clearMemory();
+          fillMemory(vars);
+        });
 
         $('#btnValidar').on('click', function (){
           var json = Drag.graph.extract();
