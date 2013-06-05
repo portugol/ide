@@ -386,7 +386,26 @@ var dragndrop = {
             });
         }
         return newShape
+    },
+
+    graphclean : function(){
+        for (var i = dragndrop.lines.length; i--;) {
+            graph.removeline(dragndrop.lines[i]);
+            dragndrop.lines[i].shape.line.remove();
+            dragndrop.lines.splice(i, 1);
+        }
+        //guarda o n de formas no graph
+        var size = dragndrop.nodes.length;
+        for (var i =  size-1; i >= 0; i--){
+            console.log(i)
+            console.log(dragndrop.nodes[i])
+            graph.remove(dragndrop.nodes[i].node);
+            dragndrop.nodes[i].remove(); 
+            dragndrop.nodes.splice(dragndrop.getElement(dragndrop.nodes[i]), 1);
+            console.log(i);  
+         };                 
     }
+
 };
 
 var paletteShapes = {
