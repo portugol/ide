@@ -142,9 +142,9 @@ var dragndrop = {
            graph.add(this.node);
            dragndrop.nodes.push(this);
            
-           var json ='[{"root":{"type":1,"data":"Click me","uuid":4,"dx":213.5,"dy":13.25,"next":{"type":6,"data":"Click me","uuid":22,"dx":215,"dy":48.99999999999994,"nexttrue":{"type":3,"data":"Click me","uuid":40,"dx":276,"dy":138.49999999999994,"next":{"type":7,"data":"null","uuid":28,"dx":243.5,"dy":244.5,"next":{"type":2,"data":"Click me","uuid":7,"dx":217,"dy":303.5}}},"nextfalse":{"type":3,"data":"Click me","uuid":10,"dx":159,"dy":141.49999999999997,"next":{"type":7,"data":"null","uuid":28,"dx":243.5,"dy":244.5}}}}}] '
-           var aux =JSON.parse(json)
-           dragndrop.nodetograph(aux[0].root,null)
+           var json ='[{"root":{"type":1,"data":"Click me","uuid":4,"dx":295.5,"dy":62.25,"next":{"type":3,"data":"Click me","uuid":10,"dx":298.5,"dy":144.24999999999997,"next":{"type":2,"data":"Click me","uuid":45,"dx":351.5,"dy":293.25}}}},{"root":{"type":1,"data":"Click me","uuid":41,"dx":469.5,"dy":65.25,"next":{"type":3,"data":"Click me","uuid":37,"dx":453.5,"dy":125.25,"next":{"type":2,"data":"Click me","uuid":48,"dx":469.5,"dy":260.25}}}}]'
+      
+           dragndrop.jsontographic(json);
         }
     },
     
@@ -284,7 +284,10 @@ var dragndrop = {
     },
     
     jsontographic : function(json){
-        console.log("grafico")
+        var aux =JSON.parse(json);
+        for (var i = 0; i < aux.length ; i++) {
+            dragndrop.nodetograph(aux[i].root);
+        };
     },
 
     nodetograph : function(node,previous){
@@ -370,6 +373,16 @@ var dragndrop = {
         this.addDragAndDropCapabilityToSet(newShape);
         //coloca o no no array de shapes
         this.nodes.push(newShape);
+        if(type != 7){
+            newShape.dblclick(function (){
+                var t = prompt('Inserir dados:','');
+                if(t === undefined || t.length === 0){
+                    t = 'Click me';
+                }
+                newShape.node.attr({text: t});
+                newShape.node.data = t;
+            });
+        }
         return newShape
     }
 };
