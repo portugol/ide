@@ -13,7 +13,6 @@ var Connection = function (r, source, target){
             //se existir uma linha com o alvo este no
             if(graph.lines[i].target == this.target){
                 if(graph.lines[i].shape.to == graph.lines[i].target.items[1]){
-                    console.log(graph.lines[i].shape.to)
                     aux = 2;
                 }
             }
@@ -26,7 +25,6 @@ var Connection = function (r, source, target){
         for (var i = graph.lines.length - 1; i >= 0; i--) {
             if(graph.lines[i].target == this.target){
                 if(graph.lines[i].shape.to == graph.lines[i].target.items[2]){
-                    console.log(graph.lines[i].shape.to)
                     aux = 5;
                 }
             }

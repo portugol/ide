@@ -2,15 +2,10 @@ var Graph = function (r){
     this.nodes = [];
     this.lines = [];
     this.r = r;
-    this.root = null;
     self = this;
 };
 //adiciona um node ao graph
 Graph.prototype.add = function (node){
-    //caso não exista root e o node seja do tipo inicio atribui a raiz ao node
-    if (this.root === null && node.type == '1') {
-        this.root = node;
-    }
     //adiciona ao array de nodes
     this.nodes.push(node);
 };
@@ -74,19 +69,16 @@ Graph.prototype.extract = function (){
         }
     };
     var jjson = '[{"root":';
-    var json="";
-    if (this.root != null) {        
-        for (var i = first.length - 1; i >= 0; i--) { 
-            var aux = this.Json(json,first[i],1, function (json){
-                jjson += json;
-            });
-            json = '},{"root":';
-        };
-        jjson +='}]';
-        return jjson;
-    }else{
-        return "Inicio não Presente";
-    }
+    var json="";      
+    for (var i = first.length - 1; i >= 0; i--) { 
+        var aux = this.Json(json,first[i],1, function (json){
+            jjson += json;
+        });
+        json = '},{"root":';
+    };
+    jjson +='}]';
+    return jjson;
+    
 };
 /*
 * Metodo recursivo que devolve a estrutura do fluxograma em JSON

@@ -65,7 +65,7 @@
 						
 				$('#btnValidar').on('click', function (){
                     var json = Drag.graph.extract();
-                    console.log(JSON.parse(json));
+                    //console.log(JSON.parse(json));
                     console.log(json)
 					var socket = io.connect('http://localhost:8080');
 					socket.on('connect', function (){
