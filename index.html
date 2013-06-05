@@ -17,8 +17,7 @@
 	<script src="libs/jquery.min.js"></script>
 	<script src="libs/raphael-min.js"></script>
     <script src="libs/classie.js"></script>
-    <!--<script src="/socket.io/socket.io.js"></script>-->
-    <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 		
     <script src="js/connection.js"></script>
 	<script src="js/DragFunctions.js"></script>
@@ -64,7 +63,7 @@
 
     			var Drag = new DragFunctions();
     					
-                /*var socket = io.connect();
+                var socket = io.connect();
 
                 socket.on('validate', function (data){
                   console.log(data.result);
@@ -79,7 +78,7 @@
                   var vars=JSON.parse(jsonMemory);
                   clearMemory();
                   fillMemory(vars);
-                });*/
+                });
 
                 $('#btnValidar').on('click', function (){
                   var json = Drag.graph.extract();

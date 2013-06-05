@@ -41,7 +41,7 @@ window.onresize=function(){
 
     this.paper.setSize(w+305,h);
     this.pitch.attr({stroke: "none"});
-    this.pitch = paper.rect(140,0,w,h,10);//
+    this.pitch = paper.rect(140,0,w-10,h,10);//
     //this.pitch.setSize('100%', '100%'); 
     //paper = Raphael('canvas', '100%','100%');
     //graph = this.Graph(paper); 
@@ -65,7 +65,7 @@ window.onresize=function(){
 
     this.paper.setSize(w+295,h);
     this.pitch.attr({stroke: "none"});
-    this.pitch = paper.rect(131,0,w,h,10);//
+    this.pitch = paper.rect(130,0,w,h,10);//
     //this.pitch.setSize('100%', '100%'); 
     //paper = Raphael('canvas', '100%','100%');
     //graph = this.Graph(paper); 
