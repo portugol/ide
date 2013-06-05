@@ -9,7 +9,7 @@ var DragFunctions = function(){
     var h = window.innerHeight;
     paper = Raphael('canvas', '100%','100%');
     graph = new Graph(paper); 
-    pitch = loadPitch(paper, w, h).attr({fill: "url('./img/panel.png')" , stroke: "black"});
+    pitch = loadPitch(paper, w, h).attr({fill: "url('../img/panel.png')" , stroke: "black"});
 
     bin = paper.rect(w-70,40,100,100).attr({"fill": "none", stroke: "none"});
 
@@ -41,7 +41,7 @@ window.onresize=function(){
 
     this.paper.setSize(w+305,h);
     this.pitch.attr({stroke: "none"});
-    this.pitch = paper.rect(140,0,w,h,10);//
+    this.pitch = paper.rect(140,0,w-10,h,10);//
     //this.pitch.setSize('100%', '100%'); 
     //paper = Raphael('canvas', '100%','100%');
     //graph = this.Graph(paper); 
@@ -65,7 +65,7 @@ window.onresize=function(){
 
     this.paper.setSize(w+295,h);
     this.pitch.attr({stroke: "none"});
-    this.pitch = paper.rect(131,0,w,h,10);//
+    this.pitch = paper.rect(130,0,w,h,10);//
     //this.pitch.setSize('100%', '100%'); 
     //paper = Raphael('canvas', '100%','100%');
     //graph = this.Graph(paper); 
@@ -150,8 +150,6 @@ var dragndrop = {
                 }
             }
         }
-       //console.log(this[0].id)
-       //dragndrop.highlight(this[0].id);
     },
 
     paletteStart:function () {
@@ -187,7 +185,7 @@ var dragndrop = {
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
                     var t = prompt('Inserir dados:','');
-                    if(t === undefined || t.length === 0){
+                    if(t === null || t.length === 0){
                             t = 'Click me';
                     }
                     self.attr({text: t});
@@ -348,7 +346,7 @@ var dragndrop = {
         };
     },
 
-    nodetograph : function(node,previous){
+    nodetograph : function(node,previous, callback){
     //verifica se a shape ja existe
     if(dragndrop.getElement(node.uuid) == null){
         //se nao cria a nova shape
@@ -368,9 +366,11 @@ var dragndrop = {
      //se for um 'if'
      if(node.type == 6){
             //percorre o no falso do no
-            this.nodetograph(node.nextfalse,shape);
-            //percorre o no verdadeiro do no
-            this.nodetograph(node.nexttrue,shape);
+            this.nodetograph(node.nextfalse,shape, function() {
+                //percorre o no verdadeiro do no
+                this.nodetograph(node.nexttrue,shape);
+            });
+            
      }else{
         //enquanto nao chegar à ultima conecao
         if(node.next != null){

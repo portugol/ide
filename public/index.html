@@ -17,7 +17,6 @@
 	<script src="libs/jquery.min.js"></script>
 	<script src="libs/raphael-min.js"></script>
     <script src="libs/classie.js"></script>
-    <!--<script src="/socket.io/socket.io.js"></script>-->
     <script src="http://localhost:8080/socket.io/socket.io.js"></script>
 		
     <script src="js/connection.js"></script>
@@ -64,7 +63,7 @@
 
     			var Drag = new DragFunctions();
     					
-                /*var socket = io.connect();
+                var socket = io.connect('http://localhost:8080');
 
                 socket.on('validate', function (data){
                   console.log(data.result);
@@ -79,7 +78,7 @@
                   var vars=JSON.parse(jsonMemory);
                   clearMemory();
                   fillMemory(vars);
-                });*/
+                });
 
                 $('#btnValidar').on('click', function (){
                   var json = Drag.graph.extract();
@@ -99,11 +98,17 @@
                         async:false,
                         cache: false,
                         type: 'GET',
-                        url: 'http://130.185.82.181/couchget/' + nomegrafo,
+                        url: 'http://localhost/couchget/' + nomegrafo,
                         data: {},
                         dataType: 'json',
                         success: function(json) {
-                            console.log(json);
+                            if(json.result !== undefined || json.result == 'nok') {
+                                alert(json.message);
+                            } else {
+                                console.log(json);
+                                console.log(JSON.stringify(json.grafo));
+                                dragndrop.jsontographic(JSON.stringify(json.grafo));
+                            }
                         },
                         error:function (xhr, ajaxOptions, thrownError){
                             if(xhr.readyState == 0 || xhr.status == 0) {
@@ -114,9 +119,8 @@
                             }
                         }
                     });
-                    var json ='[{"root":{"type":1,"data":"inicio","uuid":4,"dx":231.5,"dy":48.75,"next":{"type":3,"data":"ola","uuid":40,"dx":205.5,"dy":132.74999999999994,"next":{"type":2,"data":"fim","uuid":7,"dx":205.5,"dy":274.7499999999999}}}},{"root":{"type":1,"data":"func()","uuid":37,"dx":376,"dy":186.5,"next":{"type":3,"data":"mundo","uuid":40,"dx":390,"dy":274.5,"next":{"type":2,"data":"fim","uuid":45,"dx":365,"dy":387.5}}}}]'
       
-                    dragndrop.jsontographic(json);
+                   
                 });
 
                 $('#btnApagar').on('click', function() {
@@ -132,7 +136,7 @@
                         async:false,
                         cache: false,
                         type: 'POST',
-                        url: 'http://130.185.82.181/couchset',
+                        url: 'http://localhost/couchset',
                         data: {
                             _id: nomegrafo,
                             grafo: json
@@ -140,6 +144,11 @@
                         dataType: 'json',
                         success: function(json) {
                             console.log(json);
+                            if(json.result == 'ok') {
+                                alert("guardado com sucesso");
+                            } else {
+                                alert(json.message);
+                            }
                         },
                         error:function (xhr, ajaxOptions, thrownError){
                             if(xhr.readyState == 0 || xhr.status == 0) {
@@ -232,12 +241,12 @@
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
             <h3>ToolBox</h3>
-            <a id="showBottom"><img src="./img/tools.png"> Tools</a> 
-            <a id="btnApagar"><img src="./img/apagar.png"> Apagar</a>
-            <a id="btnValidar"><img src="./img/validar.png">Validar</a>
-            <a id="btnExecutar"><img src="./img/console.png"> Executar</a>
-            <a id="btnAbrir"><img src="./img/open.png"> Abrir</a>
-            <a id="btnGuardar"><img src="./img/guardar.png"> Guardar</a>
+            <a id="showBottom"><img src="/img/tools.png"> Tools</a> 
+            <a id="btnApagar"><img src="/img/apagar.png"> Apagar</a>
+            <a id="btnValidar"><img src="/img/validar.png">Validar</a>
+            <a id="btnExecutar"><img src="/img/console.png"> Executar</a>
+            <a id="btnAbrir"><img src="/img/open.png"> Abrir</a>
+            <a id="btnGuardar"><img src="/img/guardar.png"> Guardar</a>
         </nav>
 
 
