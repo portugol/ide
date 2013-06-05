@@ -13,7 +13,6 @@ var Connection = function (r, source, target){
             //se existir uma linha com o alvo este no
             if(graph.lines[i].target == this.target){
                 if(graph.lines[i].shape.to == graph.lines[i].target.items[1]){
-                    console.log(graph.lines[i].shape.to)
                     aux = 2;
                 }
             }
@@ -26,15 +25,11 @@ var Connection = function (r, source, target){
         for (var i = graph.lines.length - 1; i >= 0; i--) {
             if(graph.lines[i].target == this.target){
                 if(graph.lines[i].shape.to == graph.lines[i].target.items[2]){
-                    console.log(graph.lines[i].shape.to)
                     aux = 5;
                 }
             }
         };
     }
-    /*if(!(target.node.type == 7 || target.node.type == 6)){
-        aux = 2;
-    }*/
     //se a shape de origem nao for do tipo 'if' ou join'
     if(source.node.type != 6 && source.node.type != 7){
         //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
@@ -97,9 +92,6 @@ var Connection = function (r, source, target){
     }
 
     var self = this;
-    //source.toFront();
-    //target.toFront();
-
 
     //COLOCAR A REMOVER DO ARRAY GRAPH E LINES DO DRAGFUNCTIONS
    /* this.shape.line.dblclick(function (){
