@@ -294,11 +294,7 @@ var dragndrop = {
     //verifica se a shape ja existe
     if(dragndrop.getElement(node.uuid) == null){
         //se nao cria a nova shape
-        var shape = this.addShape(node.type,node.data,node.dx,node.dy);
-        //adiciona o a shape o seu no
-        shape.node = new Node(node.type,node.data,node.uuid,shape.getBBox().x,shape.getBBox().y);
-        //adiciona aos array de nos do graph o no criado
-        graph.nodes.push(shape.node)
+        var shape = this.addShape(node);
     }else{
         //caso exista atribui-lhe a shape existente
         var shape = dragndrop.getElement(node.uuid);
@@ -329,16 +325,16 @@ var dragndrop = {
      }
     },
     
-    addShape: function(type,text,dx,dy){
+    addShape: function(node){
         //procura na pallete pelo tipo de shape e adiciona-a
         for (var i = ShapesSet.length - 1; i >= 1; i--) {
-            if(ShapesSet[i][0].data('type') == type){
+            if(ShapesSet[i][0].data('type') == node.type){
                 //atribui a nova forma a shape que estava na palette 
                 var newShape = ShapesSet[i];
                 //coloca um clone na palette
                 var cloneShape = ShapesSet[i].clone();
                 //da o tipo a nova forma
-                cloneShape.data('type',type);
+                cloneShape.data('type',node.type);
                 //retira do array da palette a shape escolhida
                 ShapesSet.exclude(ShapesSet[i]);
                 //coloca no array da palette o clone criado
@@ -348,20 +344,22 @@ var dragndrop = {
             }
         }
         //atribui o texto a shape
-        newShape.items[1].attr({'text':text});
+        newShape.items[1].attr({'text':node.data});
+        var dx = node.dx;
+        var dy = node.dy;
         //coloca a shape na posicao 0,0
         dx = dx-27;
-        dy = dy-paletteShapes[type].yoffset+8;
+        dy = dy-paletteShapes[node.type].yoffset+8;
         //acertos na posicao grafica
-        if(type == 7){
+        if(node.type == 7){
             dx = dx - 25;
             dy = dy -4;
         }
         //acertos na posicao grafica
-        if(type == 2 || type == 1 || type == 8 ){
+        if(node.type == 2 || node.type == 1 || node.type == 8 ){
             dy = dy - 4;
         }
-        if(type == 6){
+        if(node.type == 6){
             dy = dy+4;
         }
         //coloca a shape no seu lugar previo
@@ -373,13 +371,17 @@ var dragndrop = {
         this.addDragAndDropCapabilityToSet(newShape);
         //coloca o no no array de shapes
         this.nodes.push(newShape);
-        if(type != 7){
+        //adiciona o a shape o seu no
+        newShape.node = new Node(node.type,node.data,node.uuid,newShape.getBBox().x,newShape.getBBox().y);
+        //adiciona aos array de nos do graph o no criado
+        graph.nodes.push(newShape.node)
+        if(node.type != 7){
             newShape.dblclick(function (){
                 var t = prompt('Inserir dados:','');
                 if(t === undefined || t.length === 0){
                     t = 'Click me';
                 }
-                newShape.node.attr({text: t});
+                newShape.items[1].attr({text: t});
                 newShape.node.data = t;
             });
         }
