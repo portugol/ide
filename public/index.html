@@ -17,7 +17,6 @@
 	<script src="libs/jquery.min.js"></script>
 	<script src="libs/raphael-min.js"></script>
   <script src="libs/classie.js"></script>
-  <script src="http://localhost:8080/socket.io/socket.io.js"></script>
   <script src="http://130.185.82.181:8080/socket.io/socket.io.js"></script>
 	
   <script src="js/connection.js"></script>
@@ -64,7 +63,7 @@
 
     			var Drag = new DragFunctions();
     					
-                var socket = io.connect('http://localhost:8080');
+                var socket = io.connect('http://130.185.82.181:8080');
 
                 socket.on('validate', function (data){
                   console.log(data.result);
