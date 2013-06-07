@@ -9,7 +9,7 @@ var DragFunctions = function(){
     var h = window.innerHeight;
     paper = Raphael('canvas', '100%','100%');
     graph = new Graph(paper); 
-    pitch = loadPitch(paper, w, h*2).attr({fill: "url('../img/panel.png')" , stroke: "black"});
+    pitch = loadPitch(paper, w, h).attr({fill: "url('../img/panel.png')" , stroke: "black"});
 
     bin = paper.rect(w-70,40,100,100).attr({"fill": "none", stroke: "none"});
 
