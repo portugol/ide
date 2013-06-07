@@ -1,7 +1,6 @@
-var Graph = function (r){
+var Graph = function (){
     this.nodes = [];
     this.lines = [];
-    this.r = r;
     self = this;
 };
 //adiciona um node ao graph
@@ -20,10 +19,6 @@ Graph.prototype.removeline = function(line){
     }
 }
 Graph.prototype.remove = function(node){
-    //caso o node removido seja a raíz, coloca a raíz não definida
-    if(node == this.root){
-      this.root = null;
-    }
     //para todos os nós do graph
     for(var i = 0; i < this.nodes.length; i++){
         //se for a remover
@@ -87,7 +82,7 @@ Graph.prototype.extract = function (){
 Graph.prototype.Json = function(json, node, counter, callback){
     var self = this;
     json += '{"type":' + node.type;
-    json += ',"data":"' + node.data+'"';
+    json += ',"data":'+ JSON.stringify(node.data);
     json += ',"uuid":' + node.uuid;
     json += ',"dx":'   + node.dx;
     json += ',"dy":'   + node.dy;
