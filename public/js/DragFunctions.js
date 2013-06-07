@@ -9,7 +9,7 @@ var DragFunctions = function(){
     var h = window.innerHeight;
     paper = Raphael('canvas', '100%','100%');
     graph = new Graph(paper); 
-    pitch = loadPitch(paper, w, h).attr({fill: "url('../img/panel.png')" , stroke: "black"});
+    pitch = loadPitch(paper, w, h*2).attr({fill: "url('../img/panel.png')" , stroke: "black"});
 
     bin = paper.rect(w-70,40,100,100).attr({"fill": "none", stroke: "none"});
 
@@ -184,9 +184,9 @@ var dragndrop = {
                 this.node = new Node(type, 'Click me', id,x,y);
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
-                    var t = prompt('Inserir dados:','');
+                    var t = prompt('Inserir dados:',dragndrop.getElement(this).items[1].attrs.text);
                     if(t === null || t.length === 0){
-                            t = 'Click me';
+                            t = dragndrop.getElement(this).items[1].attrs.text;
                     }
                     self.attr({text: t});
                     self.node.data = t;
@@ -365,10 +365,11 @@ var dragndrop = {
      }
      //se for um 'if'
      if(node.type == 6){
+            var self = this;
             //percorre o no falso do no
             this.nodetograph(node.nextfalse,shape, function() {
                 //percorre o no verdadeiro do no
-                this.nodetograph(node.nexttrue,shape);
+                self.nodetograph(node.nexttrue,shape);
             });
             
      }else{
@@ -450,9 +451,9 @@ var dragndrop = {
         graph.nodes.push(newShape.node)
         if(node.type != 7){
             newShape.dblclick(function (){
-                var t = prompt('Inserir dados:','');
+                var t = prompt('Inserir dados:',dragndrop.getElement(newShape).items[1].attrs.text);
                 if(t === undefined || t.length === 0){
-                    t = 'Click me';
+                    t = dragndrop.getElement(newShape).items[1].attrs.text;
                 }
                 newShape.items[1].attr({text: t});
                 newShape.node.data = t;
