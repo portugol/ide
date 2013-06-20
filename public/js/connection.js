@@ -57,20 +57,8 @@ var Connection = function (r, source, target){
     }else{
         //se a origem for do tipo 'if'
         if(this.source.node.type == 6){
-            //verifica se este ja tem o ligacao com o no falso
-            if(this.source.node.nextfalse == null){
-                //atribui ao no de origem o seu proximo no falso(nextfalse)
-                this.source.node.nextfalse = target.node;
-                //se o alvo for do tipo 'join'
-                if(target.node.type == 7 || target.node.type == 6){
-                    //usa a ligacao recorrendo ao valor auxiliar calculado em cima
-                    this.shape = r.connection(this.source.items[3], this.target.items[aux],"#FF0000");   
-                 }else{
-                    //caso contrario une com a ancora de baixo com a ancora de cima do alvo
-                    this.shape = r.connection(this.source.items[3],this.target.items[2],"#FF0000"); 
-                }
-            }else{
-                if(this.source.node.nexttrue == null){
+            //verifica se este ja tem o ligacao com o no true
+            if(this.source.node.nexttrue == null){
                     //atribui ao no de origem o seu proximo no verdade(nexttrue)
                     this.source.node.nexttrue = target.node;
                     //se o alvo for do tipo 'join'
@@ -81,7 +69,21 @@ var Connection = function (r, source, target){
                         //caso contrario une com a ancora de baixo com a ancora de cima do alvo
                         this.shape = r.connection(this.source.items[4],this.target.items[2],"#00FF00"); 
                     }
+            }else{
+                 //verifica se este ja tem o ligacao com o no falso
+                if(this.source.node.nextfalse == null){
+                //atribui ao no de origem o seu proximo no falso(nextfalse)
+                this.source.node.nextfalse = target.node;
+                //se o alvo for do tipo 'join'
+                    if(target.node.type == 7 || target.node.type == 6){
+                        //usa a ligacao recorrendo ao valor auxiliar calculado em cima
+                        this.shape = r.connection(this.source.items[3], this.target.items[aux],"#FF0000");   
+                     }else{
+                        //caso contrario une com a ancora de baixo com a ancora de cima do alvo
+                        this.shape = r.connection(this.source.items[3],this.target.items[2],"#FF0000"); 
+                    }
                 }
+                
             }
         }
         if(this.source.node.type == 7){
