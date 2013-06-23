@@ -71,26 +71,40 @@
     					
                 //var socket = io.connect('http://130.185.82.181:8080');
                 var socket = io.connect('http://localhost:8080');
-                socket.on('validate', function (data){
-                  console.log(data.result);
-                });
-
-                socket.on('stepProcessed', function (){
-                    if(running){
-                        this.emit('next');
+                socket.on('validated', function (){
+                    clearMemory();
+                    if(stepping){
+                        enableBtnStart(false);
+                        enableBtnExecute(false);
+                        enableBtnStart(false);
+                        enableBtnStop(true);
+                        enableBtnNext(true);
                     }
-                    else if(stepping){
-                        enableBtnNext(); 
+                    else{
+                        enableBtnExecute(false);
+                        enableBtnStart(false);
+                        enableBtnStop(true);
+                        enableBtnNext(false);
                     }
                     
                 });
 
-                socket.on('highlight', function (uuid){
-                    console.log("highlight!!!!");
-                    console.log(uuid);
-                    console.log(Drag.dragndrop);
-                    //Drag.dragndrop.highlight(uuid);              
-                    dragndrop.highlight(uuid);     
+                socket.on('stepProcessed', function (){
+                    /*if(running){
+                        this.emit('next');
+                    }
+                    else if(stepping){
+                        enableBtnNext(); 
+                    }*/
+                    enableBtnNext();
+                });
+
+                socket.on('highlight', function (uuids){              
+                    dragndrop.highlight(uuids.actual, uuids.previous);    
+                });
+
+                socket.on('restore', function (uuid){
+                    dragndrop.restore(uuid); 
                 });
 
                 socket.on('requestInput', function(){
@@ -99,18 +113,33 @@
                     socket.emit('inputFromIDE',input);
                 });
 
-                socket.on('finished',function(){
+                socket.on('finished',function(uuid){
                     running=false;
                     stepping=false;
                     enableBtnStart(true);
                     enableBtnExecute(true);
                     enableBtnStop(false);
                     enableBtnNext(false);
+                    dragndrop.restore(uuid);
                     console.log("terminou o fluxograma");
                 });
 
+                socket.on('executionAborted',function(uuid){
+                    if(stepping){
+                        console.log("RESTOREEEE");
+                        dragndrop.restore(uuid);
+                    }
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false); 
+                    clearMemory();
+                    $("#consola").append("<br>Execution aborted");
+                });
+
                 socket.on('consoleUpdate', function (data){
-                  console.log(data);
                   $("#consola").append("<br>" + data);
                 });
 
@@ -127,10 +156,6 @@
                 
                 $('#btnExecutar').on('click', function (){
                   if($(this).is(":disabled")==false){
-                        enableBtnExecute(false);
-                        enableBtnStart(false);
-                        enableBtnNext(false);
-
                         console.log("iniciou a execução");
                         var json = Drag.graph.extract();
                         socket.emit('execute', json);
@@ -153,8 +178,6 @@
                             if(json.result !== undefined || json.result == 'nok') {
                                 alert(json.message);
                             } else {
-                                console.log(json);
-                                console.log(JSON.stringify(json.grafo));
                                 dragndrop.jsontographic(JSON.stringify(json.grafo));
                             }
                         },
@@ -177,10 +200,9 @@
 
                 $('#btnStart').on('click', function(){
                     if($(this).is(":disabled")==false){
-                        enableBtnStart(false);
                         console.log("iniciou a execução");
                         var json = Drag.graph.extract();
-                        socket.emit('execute', json);
+                        socket.emit('start', json);
                         stepping=true;
                     }
                 });
@@ -200,7 +222,11 @@
 
 
                 $('#btnStop').on('click', function(){
+                    //socket = io.connect('http://localhost:8080');
+                    //socket.emit('forceDisconnect');
+                    //socket = io.connect('http://localhost:8080');
                     if($(this).is(":disabled")==false){
+                        socket.emit('stopExecution');
                         enableBtnNext(false);
                         enableBtnStart(true);
                     }
