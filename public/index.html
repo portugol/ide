@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>PORTUGOL - IDE</title>
+    <meta name="description" content="Blueprint: Slide and Push Menus" />
+    <meta name="keywords" content="sliding menu, pushing menu, navigation, responsive, menu, css, jquery" />
+    <meta name="author" content="Codrops" />
+    <link rel="shortcut icon" href="../favicon.ico">
+    
+    <link rel="stylesheet" type="text/css" href="css/default.css" />
+    <link rel="stylesheet" type="text/css" href="css/component.css" />
+
+    <script src="libs/modernizr.custom.js"></script>
+	<script src="libs/jquery.min.js"></script>
+	<script src="libs/raphael-min.js"></script>
+    <script src="libs/classie.js"></script>
+    <script src="libs/raphael.free_transform.js"></script>
+    <script src="http://130.185.82.181:8080/socket.io/socket.io.js"></script>
+	
+  <script src="js/connection.js"></script>
+	<script src="js/DragFunctions.js"></script>
+	<script src="js/node.js"></script>
+	<script src="js/graph.js"></script>
+
+
+		<style>
+			body{
+                background-color: #F1F1F1;
+            }
+            #toolbar{  
+                background-color: #C0C0C0;
+                height:80px;
+                border: 10px solid #aaa; 
+                border-radius: 25px;   
+            }  
+            #work{
+                width: 88%;
+                height: 100%;
+                margin-right: 160px;
+                float: right;
+            }
+            #sidebar{
+                background-color: #C0C0C0;
+                width:50px;
+                height:675px;
+                border: 5px solid #aaa; 
+                border-radius: 25px;
+                float:right;
+                }
+
+			#canvas{
+				border: 0px solid black;
+				width: 100%;
+				height: 100%;
+				float: left;
+
+			}
+		</style>
+
+		<script>
+    		$(document).on('ready', function() {
+
+    			var Drag = new DragFunctions();
+                var status = false;
+    				
+                var socket = io.connect('http://130.185.82.181:8080');
+
+                socket.on('validate', function (data){
+                  console.log(data.result);
+                });
+
+                socket.on('consoleUpdate', function (data){
+                  console.log(data);
+                  $("#consola").append("<br>" + data);
+                });
+
+                socket.on('memoryUpdate', function (jsonMemory){
+                  var vars=JSON.parse(jsonMemory);
+                  clearMemory();
+                  fillMemory(vars);
+                });
+
+                $('#btnValidar').on('click', function (){
+                  var json = Drag.graph.extract();
+                  socket.emit('flowchart', json);
+                });
+                
+                $('#btnExecutar').on('click', function (){
+                  var json = Drag.graph.extract();        
+                  socket.emit('execute', json);
+                });
+
+                $('#btnAbrir').on('click', function (){
+                    dragndrop.graphclean();
+                    var nomegrafo = prompt('Inserir o grafo que deseja abrir:','');
+
+                    $.ajax({
+                        async:false,
+                        cache: false,
+                        type: 'GET',
+                        url: 'http://130.185.82.181/couchget/' + nomegrafo,
+                        data: {},
+                        dataType: 'json',
+                        success: function(json) {
+                            if(json.result !== undefined || json.result == 'nok') {
+                                alert(json.message);
+                            } else {
+                                console.log(json);
+                                console.log(JSON.stringify(json.grafo));
+                                dragndrop.jsontographic(JSON.stringify(json.grafo));
+                            }
+                        },
+                        error:function (xhr, ajaxOptions, thrownError){
+                            if(xhr.readyState == 0 || xhr.status == 0) {
+                                return;
+                            } else {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        }
+                    });
+      
+                   
+                });
+
+                $('#btnApagar').on('click', function() {
+                    dragndrop.graphclean();
+                });
+
+                $('#resize').on('click', function() {
+                    graph.resize(status);
+                    if (status == false){
+                        status = true;
+                    }else{
+                        status = false;
+                    }
+                });
+
+                $('#btnGuardar').on('click', function (){
+                    console.log('guardar');
+                    var nomegrafo = prompt('Nome para o Grafo:','');
+                    json = Drag.graph.extract();
+                    json = JSON.parse(json);
+                    $.ajax({
+                        async:false,
+                        cache: false,
+                        type: 'POST',
+                        url: 'http://130.185.82.181/couchset',
+                        data: {
+                            _id: nomegrafo,
+                            grafo: json
+                        },
+                        dataType: 'json',
+                        success: function(json) {
+                            console.log(json);
+                            if(json.result == 'ok') {
+                                alert("guardado com sucesso");
+                            } else {
+                                alert(json.message);
+                            }
+                        },
+                        error:function (xhr, ajaxOptions, thrownError){
+                            if(xhr.readyState == 0 || xhr.status == 0) {
+                                return;
+                            } else {
+                                alert(xhr.status);
+                                alert(thrownError);
+                            }
+                        }
+                    });
+                });
+    		});
+            
+            function clearMemory(){
+            var parent=document.getElementById('memoria');
+            //o cabecalho nao e apagado
+            for(var i = parent.rows.length-1; i > 0;i--){
+              parent.deleteRow(i);
+            }
+            /*
+            var parent=document.getElementById('memoria');
+            while(parent.hasChildNodes()){
+                parent.removeChild(parent.firstChild);
+            }*/
+            }
+
+            function fillMemory(vars){
+                for(var i=0; i<vars.length; i++){
+                  addRowMemory(vars[i]);
+                }
+            }
+
+            function addRowMemory(variable){
+                var parent=document.getElementById("memoria");
+                console.log(parent.rows.length);
+                var newRow = parent.insertRow(parent.rows.length);
+                var name = newRow.insertCell(0);
+                var type = newRow.insertCell(1);
+                var value = newRow.insertCell(2);
+                var level = newRow.insertCell(3);
+                name.innerHTML = variable.name_;
+                type.innerHTML = variable.type_;
+                value.innerHTML = variable.value_;
+                level.innerHTML = variable.level_;
+            }
+		</script>
+	</head>
+
+	<body class="cbp-spmenu-push" oncontextmenu="return false;">
+        <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
+            <h3>Memoria</h3>
+            <table border="1" id="memoria" style="background-color:#fff; color:#000; font-size:76%;">
+                <tr>
+                    <th>Nome</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Nivel</th>
+                </tr>
+            </table>
+
+            <form>
+            <fieldset>
+            <legend>Selecting elements</legend>
+            <p>
+            <label>Linguaguem Programação</label>
+            <select id = "myList">
+            <option value = "1">C++</option>
+            <option value = "2">C#</option>
+            <option value = "3">java</option>
+            <option value = "4">Python</option>
+            </select>
+            <label>Idioma</label>
+            <select id = "myList2">
+            <option value = "1">Portugues</option>
+            <option value = "2">Inglês</option>
+            <option value = "3">Espanhol</option>
+            <option value = "4">Russo</option>
+            </select>        
+            </p>
+            </fieldset>
+            </form>          
+        </nav>
+        <nav class="cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom " id="cbp-spmenu-s4">
+            <h3>Consola</h3>
+            <div id="consola" width="300" border="1" height="500px" style="background-color:#fff; color:#000; font-size:78.5%;">
+                Consola: 
+                <!--<input class="FormElement" name="term" id="term" type="text">!-->
+                <!--<textarea id="consola" rows="5" cols="50">Consola: </textarea>-->
+            </div>
+        </nav>
+        <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
+            <h3>ToolBox</h3>
+            <a id="showBottom"><img src="img/tools.png"> Tools</a> 
+            <a id="btnApagar"><img src="img/apagar.png"> Apagar</a>
+            <a id="btnValidar"><img src="img/validar.png">Validar</a>
+            <a id="btnExecutar"><img src="img/console.png"> Executar</a>
+            <a id="btnAbrir"><img src="img/open.png"> Abrir</a>
+            <a id="btnGuardar"><img src="img/guardar.png"> Guardar</a>
+            <a id="resize">resize</a>
+        </nav>
+
+
+        
+        <!--<div class="container">
+            <header class="clearfix">
+            
+            </header>
+            <div class="principal">!-->
+                <!-- imprimir o portugol-->
+                <div class="xpto" id="canvas"></div>
+       <!-- </div>!-->
+
+        <script>
+            var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
+                menuLeft2 = document.getElementById( 'cbp-spmenu-s5' ),
+                menuRight = document.getElementById( 'cbp-spmenu-s2' ),
+                menuTop = document.getElementById( 'cbp-spmenu-s3' ),
+                menuBottom = document.getElementById( 'cbp-spmenu-s4' ),
+                showLeft = document.getElementById( 'showLeft' ),
+                showRight = document.getElementById( 'showRight' ),
+                showTop = document.getElementById( 'showTop' ),
+                showBottom = document.getElementById( 'showBottom' ),
+                showLeftPush = document.getElementById( 'showLeftPush' ),
+                showRightPush = document.getElementById( 'showRightPush' ),
+                body = document.body;
+            /*showLeft.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                classie.toggle( menuLeft2, 'inactive' );
+                disableOther( 'showLeft2' );
+            };
+            /*showLeft2.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuLeft2, 'cbp-spmenu-open' );
+                classie.toggle( menuLeft, 'inactive' );
+                disableOther( 'showLeft' );
+            };*/
+            /*showRight.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuRight, 'cbp-spmenu-open' );
+                disableOther( 'showRight' );
+            };
+            /*showTop.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuTop, 'cbp-spmenu-open' );
+                disableOther( 'showTop' );
+            };*/
+            showBottom.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                classie.toggle( menuBottom, 'cbp-spmenu-open' );
+                //disableOther( 'showBottom' );
+            };
+            /*showLeftPush.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( body, 'cbp-spmenu-push-toright' );
+                classie.toggle( menuLeft, 'cbp-spmenu-open' );
+                disableOther( 'showLeftPush' );
+            };
+            showRightPush.onclick = function() {
+                classie.toggle( this, 'active' );
+                classie.toggle( body, 'cbp-spmenu-push-toleft' );
+                classie.toggle( menuRight, 'cbp-spmenu-open' );
+                disableOther( 'showRightPush' );
+            };*/
+        </script>
+    </body>
+</html>
