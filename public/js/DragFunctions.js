@@ -184,7 +184,7 @@ var dragndrop = {
                 this.node = new Node(type, 'Click me', id,x,y);
                 this.items[1].attr({text: 'Click me'});
                 this.dblclick(function (){
-                    var t = prompt('Inserir dados:','');
+                    var t = prompt('Inserir dados:',self.node.data);
                     if(t === null || t.length === 0){
                             t = 'Click me';
                     }
