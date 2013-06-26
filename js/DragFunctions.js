@@ -80,8 +80,23 @@ window.onresize=function(){
     }
 };
 
+DragFunctions.prototype.stepHighlight = function(actualId,previousId){
+    dragndrop.highlight("#4DBCE9",actualId, previousId);
+};
 
+DragFunctions.prototype.errorHighlight = function(id){
+    dragndrop.highlight("#FF0011",id);
+};
 
+DragFunctions.prototype.reverseHighlight = function(id){
+    dragndrop.restore(id);
+};
+
+DragFunctions.prototype.reverseAll = function(){
+    for(var i=0; i<this.graph.nodes.length; i++){
+        dragndrop.restore(this.graph.nodes[i].uuid);
+    }
+};
 
 var dragndrop = {
     nodes:[],
@@ -325,27 +340,38 @@ var dragndrop = {
         });
     },
 
-    highlight: function(actualId, previousId){
+    highlight: function(color, actualId, previousId){
+        color=color||"#4DBCE9";
         var self=this;
         var node;
         var previousNode;
         var highlighting=true;
         //procura o id no array de nos
-        for (var i = this.nodes.length - 1; i >= 0; i--) {
-            if(actualId === this.nodes[i][0].id){
-                node = this.nodes[i][0];
+        if(previousId===undefined){
+            for (var i = this.nodes.length - 1; i >= 0; i--) {
+                if(actualId === this.nodes[i][0].id){
+                    node = this.nodes[i][0];
+                    break;
+                }
             }
-            if(previousId === this.nodes[i][0].id){
-                previousNode = this.nodes[i][0];
+        }
+        else{
+            for (var j = this.nodes.length - 1; j >= 0; j--) {
+                if(actualId === this.nodes[j][0].id){
+                    node = this.nodes[j][0];
+                }
+                if(previousId === this.nodes[j][0].id){
+                    previousNode = this.nodes[j][0];
+                }
             }
-        };
+        }
 
         if(previousId!==undefined){
-            node.animate({ fill: "red" }, 300,'linear');
+            node.animate({ fill: color}, 300,'linear');
             previousNode.animate({ fill: paletteShapes[previousNode.data('type')].color},300,'linear');
         }
         else{
-            node.animate({ fill: "red" }, 150,'linear');
+            node.animate({ fill: color}, 150,'linear');
         }
     },
 
