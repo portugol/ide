@@ -63,6 +63,7 @@
                 var running=false;
                 var stepping=false;
 
+                enableBtnExecute(true);
                 enableBtnStart(true);
                 enableBtnNext(false);
                 enableBtnStop(false);
@@ -73,6 +74,8 @@
                 var socket = io.connect('http://localhost:8080');
                 socket.on('validated', function (){
                     clearMemory();
+                    clearConsole();
+                    Drag.reverseAll();
                     if(stepping){
                         enableBtnStart(false);
                         enableBtnExecute(false);
@@ -86,7 +89,7 @@
                         enableBtnStop(true);
                         enableBtnNext(false);
                     }
-                    
+                    writeConsoleInfo("--- Execution started ---");
                 });
 
                 socket.on('stepProcessed', function (){
@@ -100,17 +103,39 @@
                 });
 
                 socket.on('highlight', function (uuids){              
-                    dragndrop.highlight(uuids.actual, uuids.previous);    
+                    Drag.stepHighlight(uuids.actual, uuids.previous);    
                 });
 
                 socket.on('restore', function (uuid){
-                    dragndrop.restore(uuid); 
+                    Drag.reverseHighlight(uuid); 
                 });
 
                 socket.on('requestInput', function(){
                     var input = prompt('Introduza o valor que deseja atribuir:','');
-                    console.log("EMITIU");
                     socket.emit('inputFromIDE',input);
+                });
+
+                socket.on('errors', function(errors){
+                    clearConsole();
+                    writeConsoleInfo("There are "+errors.length+" errors");
+                    for(var i=0; i<errors.length; i++){
+                        console.log(errors[i].message);
+                        writeConsoleError(errors[i].message);
+                        Drag.errorHighlight(errors[i].uuid);
+                    } 
+                });
+
+                socket.on('errorAbort', function(error){
+                    writeConsoleInfo("Execution error:");
+                    console.log(error.message);
+                    writeConsoleError(error.message);
+                    Drag.errorHighlight(error.uuid);
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
                 });
 
                 socket.on('finished',function(uuid){
@@ -120,27 +145,27 @@
                     enableBtnExecute(true);
                     enableBtnStop(false);
                     enableBtnNext(false);
-                    dragndrop.restore(uuid);
+                    Drag.reverseHighlight(uuid);
+                    writeConsoleInfo("--- Execution finished ---");
                     console.log("terminou o fluxograma");
                 });
 
                 socket.on('executionAborted',function(uuid){
                     if(stepping){
-                        console.log("RESTOREEEE");
-                        dragndrop.restore(uuid);
+                        Drag.reverseHighlight(uuid);
                     }
                     running=false;
                     stepping=false;
                     enableBtnStart(true);
                     enableBtnExecute(true);
                     enableBtnStop(false);
-                    enableBtnNext(false); 
+                    enableBtnNext(false);
                     clearMemory();
-                    $("#consola").append("<br>Execution aborted");
+                    writeConsoleInfo("--- Execution aborted ---");
                 });
 
                 socket.on('consoleUpdate', function (data){
-                  $("#consola").append("<br>" + data);
+                  writeConsoleMessage(data);
                 });
 
                 socket.on('memoryUpdate', function (jsonMemory){
@@ -227,8 +252,6 @@
                     //socket = io.connect('http://localhost:8080');
                     if($(this).is(":disabled")==false){
                         socket.emit('stopExecution');
-                        enableBtnNext(false);
-                        enableBtnStart(true);
                     }
                 });
 
@@ -273,6 +296,12 @@
                 if(flag===undefined){
                     status=true;
                 }
+                if(status){
+                    $('#btnNext').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnNext').css("background-color", "#AAB3AB");
+                }
                 $('#btnNext').prop('disabled', !status);
             }
 
@@ -280,6 +309,12 @@
                 var status=flag;
                 if(flag===undefined){
                     status=true;
+                }
+                if(status){
+                    $('#btnExecutar').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnExecutar').css("background-color", "#AAB3AB");
                 }
                 $('#btnExecutar').prop('disabled', !status);
             }
@@ -289,6 +324,12 @@
                 if(flag===undefined){
                     status=true;
                 }
+                if(status){
+                    $('#btnStart').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnStart').css("background-color", "#AAB3AB");
+                }
                 $('#btnStart').prop('disabled', !status);
             }
 
@@ -297,20 +338,49 @@
                 if(flag===undefined){
                     status=true;
                 }
+                if(status){
+                    $('#btnStop').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnStop').css("background-color", "#AAB3AB");
+                }
                 $('#btnStop').prop('disabled', !status);
             }
 
             function clearMemory(){
-            var parent=document.getElementById('memoria');
-            //o cabecalho nao e apagado
-            for(var i = parent.rows.length-1; i > 0;i--){
-              parent.deleteRow(i);
-            }
+                var parent=document.getElementById('memoria');
+                //o cabecalho nao e apagado
+                for(var i = parent.rows.length-1; i > 0;i--){
+                  parent.deleteRow(i);
+                }
             /*
             var parent=document.getElementById('memoria');
             while(parent.hasChildNodes()){
                 parent.removeChild(parent.firstChild);
             }*/
+            }
+
+            function clearConsole(){
+                $('#consola').empty();
+            }
+
+            function writeConsole(data,color){
+                color=color||"#000000";
+                //$("#consola").append(data+"<br>");
+                $("#consola").append('<span style="color:'+color+'">'+data+'<br></span>');
+                $("#consola").scrollTop($("#consola")[0].scrollHeight); //scroll automatico
+            }
+
+            function writeConsoleError(data){
+                writeConsole(data,"#FF0011");
+            }
+
+            function writeConsoleMessage(data){
+                writeConsole(data,"#000000");
+            }
+
+            function writeConsoleInfo(data){
+                writeConsole(data,"#107ECC");
             }
 
             function fillMemory(vars){
@@ -371,11 +441,10 @@
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom " id="cbp-spmenu-s4">
             <h3>Consola</h3>
-            <div id="consola" width="300" border="1" height="500px" style="background-color:#fff; color:#000; font-size:78.5%;">
-                Consola: 
-                <!--<input class="FormElement" name="term" id="term" type="text">!-->
-                <!--<textarea id="consola" rows="5" cols="50">Consola: </textarea>-->
-            </div>
+                <div id="consola" style="height:90px; width:1000px; background-color:#fff; color:#000; font-size:78.5%; overflow-y:scroll">
+                    <!--<input class="FormElement" name="term" id="term" type="text">!-->
+                    <!--<textarea id="consola" rows="5" cols="50">Consola: </textarea>-->
+                </div>
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
             <h3>ToolBox</h3>
