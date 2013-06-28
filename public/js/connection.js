@@ -2,101 +2,114 @@ var Connection = function (r, source, target){
     //atribuicao das shapes source e target referentes a linha a criar 
     this.source = source;
     this.target = target;
-
-    //valor auxiliar para determinar a ancora no caso de ser um no do tipo 'join'
-    var aux=0
-    //se o alvo for do tipo 'join'
-    if(target.node.type == 7){
-        aux = 1;
-        //para todas as linhas existentes
-        for (var i = graph.lines.length - 1; i >= 0; i--) {
-            //se existir uma linha com o alvo este no
-            if(graph.lines[i].target == this.target){
-                if(graph.lines[i].shape.to == graph.lines[i].target.items[1]){
-                    aux = 2;
-                }
-            }
-        };
-    }
-    //se o alvo for do tipo 'if'
-    if(target.node.type == 6){
-        aux = 2;
-        //para todas as linhas existentes
-        for (var i = graph.lines.length - 1; i >= 0; i--) {
-            if(graph.lines[i].target == this.target){
-                if(graph.lines[i].shape.to == graph.lines[i].target.items[2]){
-                    aux = 5;
-                }
-            }
-        };
-    }
-    //se a shape de origem nao for do tipo 'if' ou join'
-    if(source.node.type != 6 && source.node.type != 7){
-        //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
-        this.source.node.next = target.node;
-        //caso seja do tipo 'fim' ou 'inicio'
-        if(this.source.items[3] != null){
-            //se o alvo for do tipo 'join'
-            if(target.node.type == 7 || target.node.type == 6){
-                //usa a ligacao recorrendo ao valor auxiliar calculado em cima
-                this.shape = r.connection(this.source.items[3], this.target.items[aux],"#005555");   
-            }else{
-                //caso contrario une com a ancora de baixo com a ancora de cima do alvo
-                this.shape = r.connection(this.source.items[3], this.target.items[2],"#005555");   
-            }
+    //para ligacoes com o ponteiro do rato
+    if(target.type == 'rect'){    
+        if(source.node.type == 6){
+           if(source.node.nexttrue == null){
+             this.shape = r.connection(this.source.items[3],this.target,"#00FF00");   
+           }else{
+             this.shape = r.connection(this.source.items[4],this.target,"#FF0000")
+           }
         }else{
-            //se o alvo for do tipo 'join'
-            if(target.node.type == 7 || target.node.type == 6){
-                //usa a ligacao recorrendo ao valor auxiliar calculado em cima
-                this.shape = r.connection(this.source.items[2], this.target.items[aux],"#005555");   
-            }else{
-                //caso contrario une com a ancora de baixo com a ancora de cima do alvo
-                this.shape = r.connection(this.source.items[2], this.target.items[2],"#005555");   
-            }
+            this.shape = r.connection(this.source,this.target,"#005555");   
         }
     }else{
-        //se a origem for do tipo 'if'
-        if(this.source.node.type == 6){
-            //verifica se este ja tem o ligacao com o no falso
-            if(this.source.node.nextfalse == null){
-                //atribui ao no de origem o seu proximo no falso(nextfalse)
-                this.source.node.nextfalse = target.node;
+        //valor auxiliar para determinar a ancora no caso de ser um no do tipo 'join'
+        var aux=0
+        //se o alvo for do tipo 'join'
+        if(target.node.type == 7){
+            aux = 1;
+            //para todas as linhas existentes
+            for (var i = graph.lines.length - 1; i >= 0; i--) {
+                //se existir uma linha com o alvo este no
+                if(graph.lines[i].target == this.target){
+                    if(graph.lines[i].shape.to == graph.lines[i].target.items[1]){
+                        aux = 2;
+                    }
+                }
+            };
+        }
+        //se o alvo for do tipo 'if'
+        if(target.node.type == 6){
+            aux = 2;
+            //para todas as linhas existentes
+            for (var i = graph.lines.length - 1; i >= 0; i--) {
+                if(graph.lines[i].target == this.target){
+                    if(graph.lines[i].shape.to == graph.lines[i].target.items[2]){
+                        aux = 5;
+                    }
+                }
+            };
+        }
+        //se a shape de origem nao for do tipo 'if' ou join'
+        if(source.node.type != 6 && source.node.type != 7){
+            //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
+            this.source.node.next = target.node;
+            //caso seja do tipo 'fim' ou 'inicio'
+            if(this.source.items[3] != null){
                 //se o alvo for do tipo 'join'
                 if(target.node.type == 7 || target.node.type == 6){
                     //usa a ligacao recorrendo ao valor auxiliar calculado em cima
-                    this.shape = r.connection(this.source.items[3], this.target.items[aux],"#FF0000");   
-                 }else{
+                    this.shape = r.connection(this.source.items[3], this.target.items[aux],"#005555");   
+                }else{
                     //caso contrario une com a ancora de baixo com a ancora de cima do alvo
-                    this.shape = r.connection(this.source.items[3],this.target.items[2],"#FF0000"); 
+                    this.shape = r.connection(this.source.items[3], this.target.items[2],"#005555");   
                 }
             }else{
-                if(this.source.node.nexttrue == null){
-                    //atribui ao no de origem o seu proximo no verdade(nexttrue)
+                //se o alvo for do tipo 'join'
+                if(target.node.type == 7 || target.node.type == 6){
+                    //usa a ligacao recorrendo ao valor auxiliar calculado em cima
+                    this.shape = r.connection(this.source.items[2], this.target.items[aux],"#005555");   
+                }else{
+                    //caso contrario une com a ancora de baixo com a ancora de cima do alvo
+                    this.shape = r.connection(this.source.items[2], this.target.items[2],"#005555");   
+                }
+            }
+        }else{
+            //se a origem for do tipo 'if'
+            if(this.source.node.type == 6){
+                //verifica se este ja tem o ligacao com o no falso
+                if(this.source.node.nexttrue== null){
+                    //atribui ao no de origem o seu proximo no falso(nextfalse)
                     this.source.node.nexttrue = target.node;
                     //se o alvo for do tipo 'join'
-                    if(target.node.type == 7 || target.node.type == 6){           
+                    if(target.node.type == 7 || target.node.type == 6){
                         //usa a ligacao recorrendo ao valor auxiliar calculado em cima
-                        this.shape = r.connection(this.source.items[4], this.target.items[aux],"#00FF00");   
-                    }else{                 
+                        this.shape = r.connection(this.source.items[3], this.target.items[aux],"#00FF00");   
+                     }else{
                         //caso contrario une com a ancora de baixo com a ancora de cima do alvo
-                        this.shape = r.connection(this.source.items[4],this.target.items[2],"#00FF00"); 
+                        this.shape = r.connection(this.source.items[3],this.target.items[2],"#00FF00"); 
+                    }
+                }else{
+                    if(this.source.node.nextfalse == null){
+                        //atribui ao no de origem o seu proximo no verdade(nexttrue)
+                        this.source.node.nextfalse = target.node;
+                        //se o alvo for do tipo 'join'
+                        if(target.node.type == 7 || target.node.type == 6){           
+                            //usa a ligacao recorrendo ao valor auxiliar calculado em cima
+                            this.shape = r.connection(this.source.items[4], this.target.items[aux],"FF0000");   
+                        }else{                 
+                            //caso contrario une com a ancora de baixo com a ancora de cima do alvo
+                            this.shape = r.connection(this.source.items[4],this.target.items[2],"#FF0000"); 
+                        }
                     }
                 }
             }
-        }
-        if(this.source.node.type == 7){
-            //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
-            this.source.node.next = target.node;
-            this.shape = r.connection(this.source.items[3],this.target.items[2],"#005555");
+            if(this.source.node.type == 7){
+                //atribui ao no de origem o seu proximo no(next) o no de destino da ligacao
+                this.source.node.next = target.node;
+                this.shape = r.connection(this.source.items[3],this.target.items[2],"#005555");
+            }
         }
     }
 
     var self = this;
-
-    //COLOCAR A REMOVER DO ARRAY GRAPH E LINES DO DRAGFUNCTIONS
-   /* this.shape.line.dblclick(function (){
+    //duploclick para remover a linha criada
+    this.shape.line.dblclick(function (){
+        dragndrop.removeLine(self);
+        graph.removeline(self);
         self.shape.line.remove();
-    });*/
+    });
 };
 Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (obj1.line && obj1.from && obj1.to) {
@@ -147,9 +160,6 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
     if (line && line.line) {
         line.bg && line.bg.attr({path: path, "arrow-end": "classic"});
         line.line.attr({path: path, "arrow-end": "classic"});
-        /*
-        line.bg && line.bg.attr({path: path, "arrow-end": "classic",stroke:"#005555"});
-        line.line.attr({path: path, "arrow-end": "classic",stroke:"#005555", "stroke-width":3});*/
     } else {
         var color = typeof line == "string" ? line : "#005555";
         return {
@@ -160,7 +170,3 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
         };
     }
 };
- /*bg: bg && bg.split && this.path(path).attr({stroke: bg.split("|")[0], fill: "none", "stroke-width": bg.split("|")[1] || 3, "arrow-end": "block-wide-long"}),
-            line: this.path(path).attr({stroke: color, fill: "none", "arrow-end": "block-wide-long"}),
-            from: obj1,
-            to: obj2*/

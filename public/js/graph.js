@@ -71,9 +71,11 @@ Graph.prototype.extract = function (){
         });
         json = '},{"root":';
     };
+    if(this.nodes.length == 0){
+        jjson += null;
+    }
     jjson +='}]';
     return jjson;
-    
 };
 /*
 * Metodo recursivo que devolve a estrutura do fluxograma em JSON
