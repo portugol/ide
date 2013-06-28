@@ -62,6 +62,7 @@
     		$(document).on('ready', function() {
                 var running=false;
                 var stepping=false;
+                var selectTool=true;
 
                 enableBtnExecute(true);
                 enableBtnStart(true);
@@ -73,9 +74,10 @@
                 //var socket = io.connect('http://130.185.82.181:8080');
                 var socket = io.connect('http://localhost:8080');
                 socket.on('validated', function (){
-                    clearMemory();
-                    clearConsole();
-                    Drag.reverseAll();
+                    clearMemory(); //limpar memória
+                    clearConsole(); //limpar consola
+                    Drag.reverseAll(); //restaurar cores originais
+                    Drag.undragAll();  //não permitir arrastar elementos
                     if(stepping){
                         enableBtnStart(false);
                         enableBtnExecute(false);
@@ -92,18 +94,13 @@
                     writeConsoleInfo("--- Execution started ---");
                 });
 
-                socket.on('stepProcessed', function (){
-                    /*if(running){
-                        this.emit('next');
-                    }
-                    else if(stepping){
-                        enableBtnNext(); 
-                    }*/
+                socket.on('highlight', function (payload){          
+                    Drag.stepHighlight(payload.actual, payload.previous); 
                     enableBtnNext();
-                });
-
-                socket.on('highlight', function (uuids){              
-                    Drag.stepHighlight(uuids.actual, uuids.previous);    
+                    
+                    var vars=JSON.parse(payload.memory);
+                    clearMemory();
+                    fillMemory(vars);
                 });
 
                 socket.on('restore', function (uuid){
@@ -117,18 +114,23 @@
 
                 socket.on('errors', function(errors){
                     clearConsole();
-                    writeConsoleInfo("There are "+errors.length+" errors");
+                    Drag.reverseAll();
+                    //writeConsoleInfo("There are "+errors.length+" errors");
                     for(var i=0; i<errors.length; i++){
                         console.log(errors[i].message);
                         writeConsoleError(errors[i].message);
-                        Drag.errorHighlight(errors[i].uuid);
+                        if(errors[i].uuid!==undefined){
+                            console.log(errors[i].uuid);
+                            Drag.errorHighlight(errors[i].uuid); 
+                        }
                     } 
                 });
 
-                socket.on('errorAbort', function(error){
-                    writeConsoleInfo("Execution error:");
+                socket.on('errorAbort', function (error){
+                    console.log("ERROR ABORT");
                     console.log(error.message);
                     writeConsoleError(error.message);
+                    Drag.reverseHighlight(error.previous);
                     Drag.errorHighlight(error.uuid);
                     running=false;
                     stepping=false;
@@ -136,21 +138,25 @@
                     enableBtnExecute(true);
                     enableBtnStop(false);
                     enableBtnNext(false);
+                    Drag.dragAll();
                 });
 
-                socket.on('finished',function(uuid){
+                socket.on('finished', function (payload){
                     running=false;
                     stepping=false;
                     enableBtnStart(true);
                     enableBtnExecute(true);
                     enableBtnStop(false);
                     enableBtnNext(false);
-                    Drag.reverseHighlight(uuid);
+                    //Drag.reverseHighlight(uuid);
+                    Drag.stepHighlight(payload.actual, payload.previous);
+                    fillMemory(payload.memory);
                     writeConsoleInfo("--- Execution finished ---");
                     console.log("terminou o fluxograma");
+                    Drag.dragAll();
                 });
 
-                socket.on('executionAborted',function(uuid){
+                socket.on('executionAborted',function (uuid){
                     if(stepping){
                         Drag.reverseHighlight(uuid);
                     }
@@ -162,16 +168,11 @@
                     enableBtnNext(false);
                     clearMemory();
                     writeConsoleInfo("--- Execution aborted ---");
+                    Drag.dragAll();
                 });
 
                 socket.on('consoleUpdate', function (data){
                   writeConsoleMessage(data);
-                });
-
-                socket.on('memoryUpdate', function (jsonMemory){
-                  var vars=JSON.parse(jsonMemory);
-                  clearMemory();
-                  fillMemory(vars);
                 });
 
                 $('#btnValidar').on('click', function (){
@@ -183,6 +184,8 @@
                   if($(this).is(":disabled")==false){
                         console.log("iniciou a execução");
                         var json = Drag.graph.extract();
+                        console.log("JSON:")
+                        console.log(json);
                         socket.emit('execute', json);
                         running=true;
                     }
@@ -289,6 +292,22 @@
                         }
                     });
                 });
+
+                $('#selectTool').on('click', function(){
+                    if($(this).is(":disabled")==false){
+                        selectTool=true;
+                        Drag.setSelectTool();
+                        console.log("select TOOL");
+                    }
+                });
+
+                $('#connectionTool').on('click', function(){
+                    if($(this).is(":disabled")==false){
+                        selectTool=false;
+                        Drag.setConnectionTool();
+                        console.log("connection TOOL");
+                    }
+                });
     		});
             
             function enableBtnNext(flag){
@@ -297,11 +316,15 @@
                     status=true;
                 }
                 if(status){
+                    console.log("VERMELHO");
                     $('#btnNext').css("background-color", "#f00");
                 }
                 else{
+                    console.log("CINZENTO");
                     $('#btnNext').css("background-color", "#AAB3AB");
                 }
+                console.log("ENABLE BTN NEXT");
+                console.log(status);
                 $('#btnNext').prop('disabled', !status);
             }
 
@@ -408,7 +431,7 @@
 	<body class="cbp-spmenu-push" oncontextmenu="return false;">
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
             <h3>Memoria</h3>
-            <table border="1" id="memoria" style="background-color:#fff; color:#000; font-size:76%;">
+            <table border="1" id="memoria" style="width: 200px; background-color:#fff; color:#000; font-size:76%;">
                 <tr>
                     <th>Nome</th>
                     <th>Tipo</th>
@@ -416,6 +439,12 @@
                     <th>Nivel</th>
                 </tr>
             </table>
+            <div id="selectTool" style="background-color: #f00; width:100px; height:30px;">
+                select
+            </div>
+            <div id="connectionTool" style="background-color: #0f0; width:100px; height:30px;">
+                connection
+            </div>
 
             <form>
             <fieldset>
@@ -448,12 +477,13 @@
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
             <h3>ToolBox</h3>
-            <a id="showBottom"><img src="/img/tools.png"> Tools</a> 
-            <a id="btnApagar"><img src="/img/apagar.png"> Apagar</a>
-            <a id="btnValidar"><img src="/img/validar.png">Validar</a>
-            <a id="btnExecutar"><img src="/img/console.png"> Executar</a>
-            <a id="btnAbrir"><img src="/img/open.png"> Abrir</a>
-            <a id="btnGuardar"><img src="/img/guardar.png"> Guardar</a>
+            <a id="showBottom"><img src="img/tools.png"> Tools</a>
+            <a id="showBottom"><img src="img/tools.png"> Tools</a>
+            <a id="btnApagar"><img src="img/apagar.png"> Apagar</a>
+            <a id="btnValidar"><img src="img/validar.png">Validar</a>
+            <a id="btnExecutar"><img src="img/console.png"> Executar</a>
+            <a id="btnAbrir"><img src="img/open.png"> Abrir</a>
+            <a id="btnGuardar"><img src="img/guardar.png"> Guardar</a>
             <a id="btnStart">START</a>
             <a id="btnNext">NEXT</a>
             <a id="btnStop">STOP</a>
