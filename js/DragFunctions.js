@@ -2,15 +2,27 @@ var paper;
 var graph;
 var pitch;
 var bin;
+var box;
+var selSet;
+var ShapesSet;
+var hasSelection=false;
+var multipleSelection=false;
+var dragging=false;
+var workSet;
+var ox=0;
+var oy=0;
 
-var DragFunctions = function(){
+
+function DragFunctions(){
+    var myself=this;
     var w = window.innerWidth;
     w=w-305;
     var h = window.innerHeight;
     paper = Raphael('canvas', '100%','100%');
+    selSet= paper.set();
+    workSet= paper.set();
     graph = new Graph(paper); 
-    pitch = loadPitch(paper, w, h).attr({fill: "url('../img/panel.png')" , stroke: "black"});
-
+    pitch = loadPitch(paper, w, h).attr({fill: "url('img/panel.png')" , stroke: "black"});
     bin = paper.rect(w-70,40,100,100).attr({"fill": "none", stroke: "none"});
 
     rec = paper.path("M20.826,5.75l0.396,1.188c1.54,0.575,2.589,1.44,2.589,2.626c0,2.405-4.308,3.498-8.312,3.498c-4.003,0-8.311-1.093-8.311-3.498c0-1.272,1.21-2.174,2.938-2.746l0.388-1.165c-2.443,0.648-4.327,1.876-4.327,3.91v2.264c0,1.224,0.685,2.155,1.759,2.845l0.396,9.265c0,1.381,3.274,2.5,7.312,2.5c4.038,0,7.313-1.119,7.313-2.5l0.405-9.493c0.885-0.664,1.438-1.521,1.438-2.617V9.562C24.812,7.625,23.101,6.42,20.826,5.75zM11.093,24.127c-0.476-0.286-1.022-0.846-1.166-1.237c-1.007-2.76-0.73-4.921-0.529-7.509c0.747,0.28,1.58,0.491,2.45,0.642c-0.216,2.658-0.43,4.923,0.003,7.828C11.916,24.278,11.567,24.411,11.093,24.127zM17.219,24.329c-0.019,0.445-0.691,0.856-1.517,0.856c-0.828,0-1.498-0.413-1.517-0.858c-0.126-2.996-0.032-5.322,0.068-8.039c0.418,0.022,0.835,0.037,1.246,0.037c0.543,0,1.097-0.02,1.651-0.059C17.251,18.994,17.346,21.325,17.219,24.329zM21.476,22.892c-0.143,0.392-0.69,0.95-1.165,1.235c-0.474,0.284-0.817,0.151-0.754-0.276c0.437-2.93,0.214-5.209-0.005-7.897c0.881-0.174,1.708-0.417,2.44-0.731C22.194,17.883,22.503,20.076,21.476,22.892zM11.338,9.512c0.525,0.173,1.092-0.109,1.268-0.633h-0.002l0.771-2.316h4.56l0.771,2.316c0.14,0.419,0.53,0.685,0.949,0.685c0.104,0,0.211-0.017,0.316-0.052c0.524-0.175,0.808-0.742,0.633-1.265l-1.002-3.001c-0.136-0.407-0.518-0.683-0.945-0.683h-6.002c-0.428,0-0.812,0.275-0.948,0.683l-1,2.999C10.532,8.77,10.815,9.337,11.338,9.512z");
@@ -18,13 +30,248 @@ var DragFunctions = function(){
     rec.translate(w-85,30);
     rec.scale(4,4,0,0);
 
-    loadPalette(paper); 
+    loadPalette(paper);
     this.graph = graph;
+    this.selectTool=true;
+}
+
+var shapeMove = function(dx, dy, x, y, e){
+    var new_x = dx - this.ox;
+    var new_y = dy - this.oy;
+    this.ox = dx;
+    this.oy = dy;
+    this.xx = x;
+    this.yy = y;
+
+    if(dragndrop.selectTool) {
+        selSet.transform('...T' + new_x + ',' + new_y);
+        for (var i = dragndrop.lines.length; i--;) {
+            paper.connection(dragndrop.lines[i].shape);
+        };
+    }
 };
+
+var shapeClick = function(){
+    this.ox = 0;
+    this.oy = 0;
+    
+    if(dragndrop.selectTool) {
+        this.animate({"opacity":0.5}, 500);
+        if(hasSelection){
+            console.log("#TEM SELECAO");
+            if(multipleSelection){
+                console.log("#SELECAO MULTIPLA");
+                if(!isInSelection(this)){
+                    console.log("#A SHAPE NAO ESTA NA SELECAO");
+                    console.log(this);
+                    resetSelection();
+                    //restoreStyle();
+                    selSet.push(this);
+                    selectedStyle();
+                    hasSelection=true;
+                }
+                else{
+
+                }
+            }
+            else{
+                console.log("#SELECAO SIMPLES");
+                resetSelection();
+                //restoreStyle();
+                selSet.push(this);
+                selectedStyle();
+            }
+        }
+        else{
+            console.log("#NAO TEM SELECAO");
+            selSet.push(this);
+            selectedStyle();
+            hasSelection=true;
+            //multipleSelection=false; //?
+        }
+        ox = event.screenX;
+        oy = event.screenY;
+        dragging = true;
+    }
+    else{
+        
+    }
+};
+
+var shapeUp = function(){
+    this.animate({"opacity": 1}, 500);
+    dragging=false;
+    if(dragndrop.selectTool) {
+        if(!dragndrop.isInside(selSet,pitch)){
+            selSet.animate({transform:'...T' + (-this.ox) + ',' + (-this.oy)}, 1000, "bounce", function() {
+                for (var i = dragndrop.lines.length; i--;) {
+                    paper.connection(dragndrop.lines[i].shape);
+                };
+            });
+        }else{
+            this.node.dx = this.getBBox().x;
+            this.node.dy = this.getBBox().y;
+        }
+        selSet.animate({"opacity": 1}, 500);
+        if(dragndrop.isInside(this,bin)){
+             for(var j = 0; j<selSet.length; j++){
+                for (var i = dragndrop.lines.length; i--;) {
+                    if(dragndrop.lines[i].source == selSet[j] || dragndrop.lines[i].target == selSet[j] || dragndrop.lines[i].source == selSet[j] || dragndrop.lines[i].target == selSet[j]) {
+                        graph.removeline(dragndrop.lines[i]);
+                        dragndrop.lines[i].shape.line.remove();
+                        dragndrop.lines.splice(i, 1);
+                    }
+                }
+            }
+            for(var x=0; x<selSet.length; x++){
+                graph.remove(selSet[x].node);
+                dragndrop.nodes.splice(dragndrop.getElement(selSet[x]), 1);
+            }
+            selSet.remove(); //apaga visualmente
+            selSet=paper.set();
+        }
+    }
+    if(!dragndrop.selectTool && paper.getElementByPoint(this.xx,this.yy) != null) {
+            //procura o elemento pelas coordenadas do rato
+            var nn = paper.getElementByPoint(this.xx,this.yy);
+            //se nn estiver definido e não for ele mesmo
+            if(nn != undefined && this != dragndrop.getElement(nn)){
+                //caso ainda nao exista linha ja definida
+                if(!dragndrop.checkLine(this, dragndrop.getElement(nn))){
+                    var linha = new Connection(paper, this, dragndrop.getElement(nn));
+                    dragndrop.lines.push(linha);
+                    graph.lines.push(linha);
+                }
+            }
+        }
+};
+
+function resetSelection(){
+    hasSelection=false;
+    multipleSelection=false;
+    selSet=paper.set();
+}
+
+function isInSelection(shape){
+    console.log("lalalal");
+    console.log(shape);
+    for (var i=0; i < selSet.length; i++) {
+        console.log("----------------");
+        console.log(shape);
+        console.log(selSet[i]);
+        console.log(i);
+        console.log("----------------");
+        if(selSet[i]==shape){
+            return true;
+        }
+    }
+    return false;
+}
+
+var pitchStart = function(x,y){
+    console.log("click no pitch");
+    box = paper.rect(x, y, 1, 1).attr("stroke", "#9999FF");
+};
+
+//
+var pitchMove = function(dx, dy, x, y){
+    console.log("move no pitch");
+
+    var xoffset = 0,
+        yoffset = 0;
+    if (dx < 0) {
+        xoffset = dx;
+        dx = -1 * dx;
+    }
+    if (dy < 0) {
+        yoffset = dy;
+        dy = -1 * dy;
+    }
+    box.transform("T" + xoffset + "," + yoffset);
+    box.attr("width", dx);
+    box.attr("height", dy);
+    
+    /*
+    //coordenadas
+    var x = event.screenX;
+    var y = event.screenY;
+    //largura e altura da seleção
+    var width = x-box.attrs.x;
+    var height = y-box.attrs.y;
+    //offsets
+    var xoffset = 0,
+        yoffset = 0;
+    //inverter se for negativo
+    if (width < 0) {
+        xoffset = width;
+        width = -1 * width;
+    }
+    if (height < 0) {
+        yoffset = height;
+        height = -1 * height;
+    }
+    //aplicar alterações
+    box.transform("T" + xoffset + "," + yoffset);
+    box.attr("width", width);
+    box.attr("height", height);
+    */
+};
+
+var pitchUp = function(){
+    selSet = paper.set(); //limpar set da seleção anterior
+    console.log("up no pitch");
+
+    var bounds = box.getBBox();
+    box.remove();
+    //console.log("bounds da caixa");
+    //console.log(bounds);
+    //console.log("bounds das formas");
+    console.log("*#*#* NOS SELECIONADOS #*#*#*#*#");
+
+    for (var c in workSet.items) {
+        var mybounds = workSet[c].getBBox();
+        //console.log(mybounds);
+        if (mybounds.x >= bounds.x && mybounds.x <= bounds.x2 || mybounds.x2 >= bounds.x && mybounds.x2 <= bounds.x2) {
+        if (mybounds.y >= bounds.y && mybounds.y <= bounds.y2 || mybounds.y2 >= bounds.y && mybounds.y2 <= bounds.y2) {
+                console.log(workSet[c]);
+                selSet.push(workSet[c]);
+            }
+        }
+    }
+    console.log("*#*#*#*#*#*#*#");
+
+    console.log("SEL SET:")
+    console.log(selSet);
+    if(selSet.length!==0){
+        if(selSet.length>1){
+            console.log("NEW MULTIPLE SELECTION");
+            multipleSelection=true;
+        }
+        else {
+            console.log("NEW SINGLE SELECTION");
+            multipleSelection=false;
+        }
+        selectedStyle();
+        hasSelection=true;
+    }
+    else{
+        hasSelection=false;
+        multipleSelection=false;
+    }
+};
+
+
+function selectedStyle(){
+    /*selSet.attr({
+       fill: 'red',
+       stroke: 'black',
+       opacity: 1
+   });*/
+}
+
 
 //funçao que permite redesenhar a Board e a reciclagem quando e feito um rezise a janela de browser
 window.onresize=function(){
-
     var aux=bin.getBBox().x;
     
     if(aux>121){
@@ -89,6 +336,8 @@ DragFunctions.prototype.errorHighlight = function(id){
 };
 
 DragFunctions.prototype.reverseHighlight = function(id){
+    console.log("ENTRA NO RESTORE COM O ID");
+    console.log(id);
     dragndrop.restore(id);
 };
 
@@ -98,7 +347,34 @@ DragFunctions.prototype.reverseAll = function(){
     }
 };
 
+DragFunctions.prototype.setSelectTool = function(){
+    console.log("ESCOLHEU SELECT TOOL");
+    dragndrop.selectTool=true;
+};
+
+DragFunctions.prototype.setConnectionTool = function(){
+    console.log("ESCOLHEU CONNECTION TOOL");
+    dragndrop.selectTool=false;
+};
+
+DragFunctions.prototype.undragAll = function(){
+    workSet.undrag();
+    selSet.undrag();
+    ShapesSet.undrag();
+};
+
+DragFunctions.prototype.dragAll = function(){
+    for(var i=0; i<ShapesSet.length; i++){
+        dragndrop.addDragAndDropCapabilityToPaletteOption(ShapesSet[i]);
+    }
+    for(var j=0; j<workSet.length; j++){
+        dragndrop.addDragAndDropCapabilityToSet(workSet[j]);
+        
+    }
+};
+
 var dragndrop = {
+    selectTool: true,
     nodes:[],
     lines:[],
 
@@ -109,7 +385,13 @@ var dragndrop = {
         this.oy = dy;
         this.xx = x;
         this.yy = y;
-        if(e.which == 1) {
+        /*if(e.which == 1) {
+            this.transform('...T' + new_x + ',' + new_y);
+            for (var i = dragndrop.lines.length; i--;) {
+                paper.connection(dragndrop.lines[i].shape);
+            };
+        }*/
+        if(dragndrop.selectTool) {
             this.transform('...T' + new_x + ',' + new_y);
             for (var i = dragndrop.lines.length; i--;) {
                 paper.connection(dragndrop.lines[i].shape);
@@ -120,13 +402,17 @@ var dragndrop = {
     start:function (x,y,e) {
         this.ox = 0;
         this.oy = 0;
-        if(e.which == 1) {
+        /*if(e.which == 1) {
+            this.animate({"opacity":0.5}, 500);
+        }*/
+        if(dragndrop.selectTool) {
             this.animate({"opacity":0.5}, 500);
         }
     },
     //acção provocada quando se levanta o rato de um objecto da area de trabalho
     up: function (e) {
-        if(e.which == 1) {
+        //if(e.which == 1) {
+        if(dragndrop.selectTool) {
             if(!dragndrop.isInside(this,pitch)){
                 this.animate({transform:'...T' + (-this.ox) + ',' + (-this.oy)}, 1000, "bounce", function() {
                     for (var i = dragndrop.lines.length; i--;) {
@@ -151,7 +437,8 @@ var dragndrop = {
                 this.remove(); 
             }
         } else{
-            if(e.which == 3 && paper.getElementByPoint(this.xx,this.yy) != null) {
+            //if(e.which == 3 && paper.getElementByPoint(this.xx,this.yy) != null) {
+            if(!dragndrop.selectTool && paper.getElementByPoint(this.xx,this.yy) != null) {
             //procura o elemento pelas coordenadas do rato
             var nn = paper.getElementByPoint(this.xx,this.yy);
             //se nn estiver definido e não for ele mesmo
@@ -174,7 +461,7 @@ var dragndrop = {
         var newPaletteObj = this.clone();
         newPaletteObj.data('type',this.items[0].data('type'));
         ShapesSet.exclude(this);
-        ShapesSet.push(newPaletteObj);
+        ShapesSet.push(newPaletteObj); 
         dragndrop.addDragAndDropCapabilityToPaletteOption(newPaletteObj);
         this.animate({"opacity":0.5}, 500);
     },
@@ -184,8 +471,11 @@ var dragndrop = {
             this.remove();
         }else{
             this.undrag();
-
-            dragndrop.addDragAndDropCapabilityToSet(this);
+            console.log("$$$$");
+            console.log(this);
+            dragndrop.addDragAndDropCapabilityToSet(this); //eventos
+            workSet.push(this); //colocar no set de selação múltipla
+            //dragndrop.addDragAndDropCapabilityToSet(this);
             dragndrop.addHover(this);
             this.animate({"opacity":1}, 500);
             var self=this;
@@ -325,8 +615,10 @@ var dragndrop = {
     },
     //Adiciona Capacidades de drag and drop ao comSet(Para objectos da área de trabalho)
     addDragAndDropCapabilityToSet: function(compSet) {
-        compSet.drag(this.move, this.start, this.up, compSet, compSet, compSet);
+        //compSet.drag(this.move, this.start, this.up, compSet, compSet, compSet);
+        compSet.drag(shapeMove, shapeClick, shapeUp, compSet, compSet, compSet);
     },
+
     //Adiciona capacidade de drag and drop ao compset(Para objectos da pallete)
     addDragAndDropCapabilityToPaletteOption:function (compSet) {
         compSet.drag(this.move, this.paletteStart, this.paletteUp, compSet, compSet, compSet);
@@ -371,7 +663,7 @@ var dragndrop = {
             previousNode.animate({ fill: paletteShapes[previousNode.data('type')].color},300,'linear');
         }
         else{
-            node.animate({ fill: color}, 150,'linear');
+            node.animate({ fill: color}, 300,'linear');
         }
     },
 
@@ -526,19 +818,25 @@ var paletteShapes = {
     7 :{color:"#8E2323", path:"M0,8 C0,8 0,0 8,0 C8,0 15,0 15,8 C15,8 15,15 8,15 C8,15 0,15 0,8  Z", yoffset:345},
     8 :{color:"brown", path:"M0,7 L7,0 L42,0 C42,0 50,0 50,7 C50,7 50,15 42,15 L7,15 L0,7 Z", yoffset:385},
 };
+
+
 var loadPitch = function (paper, xmax, ymax) {
     var pitch = paper.rect(140,0,xmax,ymax,10); // 10 para os cantos 
     pitch.attr({stroke: "orange"});
     pitch.transform("...T140,");
+    pitch.drag(pitchMove, pitchStart, pitchUp);
     return pitch;
 };
 
+/*
+var resetSelection = function(){
+    selSet.splice(0,selSet.length);
+}*/
 
 /*
     Carrega a palete
 */
 var loadPalette = function(paper){
-
     //inicia o set com os objectos da palette
     ShapesSet = paper.set();
     //cria um rectangulo que sera usado como border
