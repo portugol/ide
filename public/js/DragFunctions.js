@@ -43,7 +43,7 @@ window.onresize=function(){
         w=w-305;
         var h = window.innerHeight;
         this.paper.setSize(w+305,h);
-        this.pitch.attr({fill: "url('./img/panel.png')" ,stroke: "none"});
+        this.pitch.attr({stroke: "none"});
         this.pitch = paper.rect(140,0,w-10,h,10);
         bin = paper.rect(w-70,40,100,100).attr({"fill": "none", stroke: "none"});
         rec = paper.path("M20.826,5.75l0.396,1.188c1.54,0.575,2.589,1.44,2.589,2.626c0,2.405-4.308,3.498-8.312,3.498c-4.003,0-8.311-1.093-8.311-3.498c0-1.272,1.21-2.174,2.938-2.746l0.388-1.165c-2.443,0.648-4.327,1.876-4.327,3.91v2.264c0,1.224,0.685,2.155,1.759,2.845l0.396,9.265c0,1.381,3.274,2.5,7.312,2.5c4.038,0,7.313-1.119,7.313-2.5l0.405-9.493c0.885-0.664,1.438-1.521,1.438-2.617V9.562C24.812,7.625,23.101,6.42,20.826,5.75zM11.093,24.127c-0.476-0.286-1.022-0.846-1.166-1.237c-1.007-2.76-0.73-4.921-0.529-7.509c0.747,0.28,1.58,0.491,2.45,0.642c-0.216,2.658-0.43,4.923,0.003,7.828C11.916,24.278,11.567,24.411,11.093,24.127zM17.219,24.329c-0.019,0.445-0.691,0.856-1.517,0.856c-0.828,0-1.498-0.413-1.517-0.858c-0.126-2.996-0.032-5.322,0.068-8.039c0.418,0.022,0.835,0.037,1.246,0.037c0.543,0,1.097-0.02,1.651-0.059C17.251,18.994,17.346,21.325,17.219,24.329zM21.476,22.892c-0.143,0.392-0.69,0.95-1.165,1.235c-0.474,0.284-0.817,0.151-0.754-0.276c0.437-2.93,0.214-5.209-0.005-7.897c0.881-0.174,1.708-0.417,2.44-0.731C22.194,17.883,22.503,20.076,21.476,22.892zM11.338,9.512c0.525,0.173,1.092-0.109,1.268-0.633h-0.002l0.771-2.316h4.56l0.771,2.316c0.14,0.419,0.53,0.685,0.949,0.685c0.104,0,0.211-0.017,0.316-0.052c0.524-0.175,0.808-0.742,0.633-1.265l-1.002-3.001c-0.136-0.407-0.518-0.683-0.945-0.683h-6.002c-0.428,0-0.812,0.275-0.948,0.683l-1,2.999C10.532,8.77,10.815,9.337,11.338,9.512z");
@@ -68,10 +68,46 @@ window.onresize=function(){
         }
 };
 
+DragFunctions.prototype.stepHighlight = function(actualId,previousId){
+    dragndrop.highlight("#4DBCE9",actualId, previousId);
+};
+
+DragFunctions.prototype.errorHighlight = function(id){
+    dragndrop.highlight("#FF0011",id);
+};
+
+DragFunctions.prototype.reverseHighlight = function(id){
+    console.log("ENTRA NO RESTORE COM O ID");
+    console.log(id);
+    dragndrop.restore(id);
+};
+
+DragFunctions.prototype.reverseAll = function(){
+    for(var i=0; i<this.graph.nodes.length; i++){
+        dragndrop.restore(this.graph.nodes[i].uuid);
+    }
+};
+
+
+DragFunctions.prototype.undragAll = function(){
+    workSet.undrag();
+    selSet.undrag();
+    ShapesSet.undrag();
+};
+
+DragFunctions.prototype.dragAll = function(){
+    for(var i=0; i<ShapesSet.length; i++){
+        dragndrop.addDragAndDropCapabilityToPaletteOption(ShapesSet[i]);
+    }
+    for(var j=0; j<workSet.length; j++){
+        dragndrop.addDragAndDropCapabilityToSet(workSet[j]);
+        
+    }
+};
+
 var dragndrop = {
     nodes:[],
     lines:[],
-    selectTool:true,
 
     move: function (dx, dy, x, y, e) {
         var new_x = dx - this.ox;
@@ -91,7 +127,7 @@ var dragndrop = {
     start:function (x,y,e) {
         this.ox = 0;
         this.oy = 0;
-        if(dragndrop.selectTool) {
+        if(e.which == 1){
             this.animate({"opacity":0.5}, 500);
             if(hasSelection){
                 if(multipleSelection){
@@ -100,18 +136,18 @@ var dragndrop = {
                         selSet.push(this);
                         dragndrop.selectedStyle();
                         hasSelection=true;
+                    }else{
+                        for (var i = selSet.length - 1; i >= 0; i--) {
+                            selSet[i].items[0].attr({opacity:0.5}); 
+                        };
                     }
-                    else{
-
-                    }
-                }
-                else{
+                }else{
                     dragndrop.resetSelection();
                     selSet.push(this);
                     dragndrop.selectedStyle();
                 }
-            }
-            else{
+            }else{
+                dragndrop.resetSelection();
                 selSet.push(this);
                 dragndrop.selectedStyle();
                 hasSelection=true;
@@ -121,8 +157,9 @@ var dragndrop = {
             dragging = true;
         }
     },
+
     //acção provocada quando se levanta o rato de um objecto da area de trabalho
-    up: function (e) {
+    up:function (e) {
         if(e.which == 1) {
             if(!dragndrop.isInside(selSet,pitch)){
                 selSet.animate({transform:'...T' + (-this.ox) + ',' + (-this.oy)}, 1000, "bounce", function() {
@@ -238,7 +275,6 @@ var dragndrop = {
     paletteStart:function () {
         this.ox = 0;
         this.oy = 0;
-
         var newPaletteObj = this.clone();
         newPaletteObj.data('type',this.items[0].data('type'));
         ShapesSet.exclude(this);
@@ -264,8 +300,8 @@ var dragndrop = {
             var y = this.getBBox().y;
             var type = this.items[0].data('type');
             if(type != 7){
-                this.node = new Node(type, 'Click me', id,x,y);
-                this.items[1].attr({text: 'Click me'});
+                this.node = new Node(type, this.items[1].attrs.text, id,x,y);
+                this.items[1].attr({text: this.items[1].attrs.text});
                 this.dblclick(function (){
                     if(active){
                         var t = prompt('Inserir dados:',dragndrop.getElement(this).items[1].attrs.text);
@@ -428,18 +464,39 @@ var dragndrop = {
         });
     },
 
-    highlight: function(id){
+    highlight: function(color, actualId, previousId){
+        color=color||"#4DBCE9";
+        var self=this;
         var node;
+        var previousNode;
+        var highlighting=true;
         //procura o id no array de nos
-        for (var i = this.nodes.length - 1; i >= 0; i--) {
-            if(id === this.nodes[i][0].id){
-                node = this.nodes[i][0];
+        if(previousId===undefined){
+            for (var i = this.nodes.length - 1; i >= 0; i--) {
+                if(actualId === this.nodes[i][0].id){
+                    node = this.nodes[i][0];
+                    break;
+                }
             }
-        };
-        //anima o objecto para mudar de cor com atrasso causando a sensacao de este estar a piscar
-        node.animate({ fill: "red" }, 300,'bounce',function(){ node.animate({fill: paletteShapes[node.data('type')].color},300,function(){node.animate({ fill: "red" }, 300,'bounce',function(){ node.animate({"fill":paletteShapes[node.data('type')].color},300,function(){ node.animate({"fill":"red"},300)})})})});
-        //repor cor original
-        //node.attr({"fill":paletteShapes[node.data('type')].color}); 
+        }
+        else{
+            for (var j = this.nodes.length - 1; j >= 0; j--) {
+                if(actualId === this.nodes[j][0].id){
+                    node = this.nodes[j][0];
+                }
+                if(previousId === this.nodes[j][0].id){
+                    previousNode = this.nodes[j][0];
+                }
+            }
+        }
+
+        if(previousId!==undefined){
+            node.animate({ fill: color}, 300,'linear');
+            previousNode.animate({ fill: paletteShapes[previousNode.data('type')].color},300,'linear');
+        }
+        else{
+            node.animate({ fill: color}, 300,'linear');
+        }
     },
     
     jsontographic : function(json){
@@ -598,11 +655,13 @@ var dragndrop = {
                 function(x,y,e) {
                     self = dragndrop.getElement(this);
                     if(e.which == 1){
+                        var posx = e.pageX - $(document).scrollLeft() - $('#canvas').offset().left;
+                        var posy = e.pageY - $(document).scrollTop() - $('#canvas').offset().top;
                         if(window.onmousemove){
                             window.onmousemove = null;
-                            if(paper.getElementByPoint(e.x+10,e.y+10) != null) {
+                            if(paper.getElementByPoint(posx,posy) != null) {
                             //procura o elemento pelas coordenadas do rato
-                            var nn = dragndrop.getElement(paper.getElementByPoint(e.x+10,e.y+10));
+                            var nn = dragndrop.getElement(paper.getElementByPoint(posx,posy));
                             //caso nn estiver definido e não for ele mesmo
                             if(nn != undefined && nn != previous){
                                 //caso ainda nao exista linha ja definida
@@ -616,11 +675,13 @@ var dragndrop = {
                         previous.line.shape.line.remove();
                         previous = null;
                         }else{
-                            var band = paper.rect(e.x,e.y,1,1).attr({stroke:"none", fill:"none"});
+                            var band = paper.rect(posx,posy,1,1).attr({stroke:"none", fill:"none"});
                             self.line = new Connection(paper, self, band);  
                             if (!window.onmousemove) {
                                 window.onmousemove = function(e){
-                                    band.attr({x:e.x-8,y:e.y+8});
+                                    posx = e.pageX - $(document).scrollLeft() - $('#canvas').offset().left;
+                                    posy = e.pageY - $(document).scrollTop() - $('#canvas').offset().top;
+                                    band.attr({x:posx,y:posy});
                                     if(self.line != undefined){
                                         paper.connection(self.line.shape);
                                     }
@@ -653,6 +714,13 @@ var dragndrop = {
     },
 
     setToSelect : function(){
+        //reseta todas as variaveis do modo seleccao anterior
+        dragndrop.resetSelection(); 
+        //caso se mude do modo de ligação para selecionar
+        window.onmousemove = null;
+        if(previous != null){
+            previous.line.shape.line.remove();
+        }  
         //flag para permitir a inserção de texto
         active = true;
         //para todas as shapes presentes na pallete
@@ -667,6 +735,23 @@ var dragndrop = {
         };
         pitch.undrag();
         pitch.drag(dragndrop.pitchMove,dragndrop.pitchStart,dragndrop.pitchUp);
+    },
+    restore: function(id){
+        if(id!==undefined){
+
+            var node;
+            //procura o id no array de nos
+            for (var i = this.nodes.length - 1; i >= 0; i--) {
+                if(id === this.nodes[i][0].id){
+                    node = this.nodes[i][0];
+                    break;
+                }
+            };
+
+            if(node!==undefined){
+                node.animate({ fill: paletteShapes[node.data('type')].color},300,'linear');
+            }
+        }
     }
 
 };

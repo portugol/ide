@@ -62,25 +62,115 @@
     		$(document).on('ready', function() {
 
     			var Drag = new DragFunctions();
-    					
                 var socket = io.connect('http://130.185.82.181:8080');
+                var running=false;
+                var stepping=false;
+                var selectTool=true;
 
-                socket.on('validate', function (data){
-                  console.log(data.result);
+                enableBtnExecute(true);
+                enableBtnStart(true);
+                enableBtnNext(false);
+                enableBtnStop(false);
+
+                socket.on('validated', function (){
+                    clearMemory(); //limpar memória
+                    clearConsole(); //limpar consola
+                    Drag.reverseAll(); //restaurar cores originais
+                    Drag.undragAll();  //não permitir arrastar elementos
+                    if(stepping){
+                        enableBtnStart(false);
+                        enableBtnExecute(false);
+                        enableBtnStart(false);
+                        enableBtnStop(true);
+                        enableBtnNext(true);
+                    }
+                    else{
+                        enableBtnExecute(false);
+                        enableBtnStart(false);
+                        enableBtnStop(true);
+                        enableBtnNext(false);
+                    }
+                    writeConsoleInfo("--- Execution started ---");
+                });
+
+                socket.on('highlight', function (payload){          
+                    Drag.stepHighlight(payload.actual, payload.previous); 
+                    enableBtnNext();
+                    
+                    var vars=JSON.parse(payload.memory);
+                    clearMemory();
+                    fillMemory(vars);
+                });
+
+                socket.on('restore', function (uuid){
+                    Drag.reverseHighlight(uuid); 
+                });
+
+                socket.on('requestInput', function(){
+                    var input = prompt('Introduza o valor que deseja atribuir:','');
+                    socket.emit('inputFromIDE',input);
+                });
+
+                socket.on('errors', function(errors){
+                    clearConsole();
+                    Drag.reverseAll();
+                    for(var i=0; i<errors.length; i++){
+                        console.log(errors[i].message);
+                        writeConsoleError(errors[i].message);
+                        if(errors[i].uuid!==undefined){
+                            console.log(errors[i].uuid);
+                            Drag.errorHighlight(errors[i].uuid); 
+                        }
+                    } 
+                });
+
+                socket.on('errorAbort', function (error){
+                    console.log("ERROR ABORT");
+                    console.log(error.message);
+                    writeConsoleError(error.message);
+                    Drag.reverseHighlight(error.previous);
+                    Drag.errorHighlight(error.uuid);
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
+                    Drag.dragAll();
+                });
+
+                socket.on('finished', function (payload){
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
+                    Drag.stepHighlight(payload.actual, payload.previous);
+                    fillMemory(payload.memory);
+                    writeConsoleInfo("--- Execution finished ---");
+                    console.log("terminou o fluxograma");
+                    Drag.dragAll();
+                });
+
+                socket.on('executionAborted',function (uuid){
+                    if(stepping){
+                        Drag.reverseHighlight(uuid);
+                    }
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
+                    clearMemory();
+                    writeConsoleInfo("--- Execution aborted ---");
+                    Drag.dragAll();
                 });
 
                 socket.on('consoleUpdate', function (data){
-                  console.log(data);
-                  $("#consola").append("<br>" + data);
+                  writeConsoleMessage(data);
                 });
-
-                socket.on('memoryUpdate', function (jsonMemory){
-                  var vars=JSON.parse(jsonMemory);
-                  clearMemory();
-                  fillMemory(vars);
-                  
-                });
-
                 $('#btnValidar').on('click', function (){
                   var json = Drag.graph.extract();
                   socket.emit('flowchart', json);
@@ -90,6 +180,30 @@
                   var json = Drag.graph.extract();
                   console.log(json);    
                   socket.emit('execute', json);
+                });
+
+                $('#btnStart').on('click', function(){
+                    if($(this).is(":disabled")==false){
+                        var json = Drag.graph.extract();
+                        socket.emit('start', json);
+                        stepping=true;
+                    }
+                });
+
+                $('#btnStop').on('click', function(){
+                    if($(this).is(":disabled")==false){
+                        socket.emit('stopExecution');
+                    }
+                });
+
+                $('#btnNext').on('click', function(){
+                    if($(this).is(":disabled")==false){
+                        enableBtnNext(false);
+                        if(stepping){
+                            socket.emit('next');
+                            console.log("emitiu o NEXT");
+                        }
+                    }
                 });
 
                 $('#btnAbrir').on('click', function (){
@@ -169,12 +283,90 @@
                 }); 
     		});
             
+            function enableBtnNext(flag){
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnNext').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnNext').css("background-color", "#AAB3AB");
+                }
+                $('#btnNext').prop('disabled', !status);
+            }
+
+            function enableBtnExecute(flag){
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnExecutar').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnExecutar').css("background-color", "#AAB3AB");
+                }
+                $('#btnExecutar').prop('disabled', !status);
+            }
+
+            function enableBtnStart(flag){
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnStart').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnStart').css("background-color", "#AAB3AB");
+                }
+                $('#btnStart').prop('disabled', !status);
+            }
+
+            function enableBtnStop(flag){
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnStop').css("background-color", "#f00");
+                }
+                else{
+                    $('#btnStop').css("background-color", "#AAB3AB");
+                }
+                $('#btnStop').prop('disabled', !status);
+            }
+
             function clearMemory(){
                 var parent=document.getElementById('memoria');
                 //o cabecalho nao e apagado
                 for(var i = parent.rows.length-1; i > 0;i--){
                   parent.deleteRow(i);
                 }
+            }
+
+            function clearConsole(){
+                $('#consola').empty();
+            }
+
+            function writeConsole(data,color){
+                color=color||"#000000";
+                $("#consola").append('<span style="color:'+color+'">'+data+'<br></span>');
+                $("#consola").scrollTop($("#consola")[0].scrollHeight); //scroll automatico
+            }
+
+            function writeConsoleError(data){
+                writeConsole(data,"#FF0011");
+            }
+
+            function writeConsoleMessage(data){
+                writeConsole(data,"#000000");
+            }
+
+            function writeConsoleInfo(data){
+                writeConsole(data,"#107ECC");
             }
 
             function fillMemory(vars){
@@ -199,7 +391,7 @@
 		</script>
 	</head>
 
-	<body class="cbp-spmenu-push" oncontextmenu="return false;">
+	<body class="cbp-spmenu-push">
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
             <h3>Memoria</h3>
             <table border="1" id="memoria" style="background-color:#fff; color:#000; font-size:76%;">
@@ -241,14 +433,18 @@
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
             <h3>ToolBox</h3>
-            <a id="showBottom"><img src="./img/tools.png"> Tools</a> 
-            <a id="btnApagar"><img src="./img/apagar.png"> Apagar</a>
-            <a id="btnValidar"><img src="./img/validar.png">Validar</a>
-            <a id="btnExecutar"><img src="./img/console.png"> Executar</a>
-            <a id="btnAbrir"><img src="./img/open.png"> Abrir</a>
-            <a id="btnGuardar"><img src="./img/guardar.png"> Guardar</a>
-            <a id="btnConect">Coneções</a>
+            <a id="showBottom">Tools</a> 
+            <a id="btnApagar">Apagar</a>
+            <a id="btnValidar">Validar</a>
+            <a id="btnExecutar">Executar</a>
+            <a id="btnAbrir"> Abrir</a>
+            <a id="btnGuardar"> Guardar</a>
+            <a id="btnConect">Conexões</a>
             <a id="btnSelect">Select</a>
+            <a id="btnStart">START</a>
+            <a id="btnNext">NEXT</a>
+            <a id="btnStop">STOP</a>
+
         </nav>
 
         <div class="xpto" id="canvas"></div>
