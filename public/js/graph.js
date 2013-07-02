@@ -71,9 +71,11 @@ Graph.prototype.extract = function (){
         });
         json = '},{"root":';
     };
+    if(this.nodes.length == 0){
+        jjson += null;
+    }
     jjson +='}]';
     return jjson;
-    
 };
 /*
 * Metodo recursivo que devolve a estrutura do fluxograma em JSON
@@ -95,17 +97,29 @@ Graph.prototype.Json = function(json, node, counter, callback){
     node.processed = true;
 
     if(node.type == 6){
-        json += ',"nexttrue":';
-        this.Json(json, node.nexttrue, 0, function(jsonn) {
-            json = jsonn;
-            json += '}';
-            json += ',"nextfalse":';
-            self.Json(json, node.nextfalse, 0, function(jsonn){
+        if(node.nexttrue != null){
+            json += ',"nexttrue":';
+            this.Json(json, node.nexttrue, 0, function(jsonn) {
                 json = jsonn;
-                json+='}';
-                json+=self.fecha(counter)
-            }); 
-        });
+                json += '}';
+                json += ',"nextfalse":';
+                if(node.nextfalse != null){
+                    self.Json(json, node.nextfalse, 0, function(jsonn){
+                        json = jsonn;
+                        json+='}';
+                        json+=self.fecha(counter)
+                    }); 
+                }else{
+                    self.fecha(counter);
+                    apprise("Fluxograma mal construido!");
+                    return;
+                }
+            });
+        }else{
+            this.fecha(counter)
+            apprise("Fluxograma mal construido!");
+            return;
+        }
     }else{
         if(node.next == null){
             json+=this.fecha(counter)

@@ -1,32 +1,40 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>PORTUGOL - IDE</title>
-    <meta name="description" content="Blueprint: Slide and Push Menus" />
-    <meta name="keywords" content="sliding menu, pushing menu, navigation, responsive, menu, css, jquery" />
-    <meta name="author" content="Codrops" />
-    <link rel="shortcut icon" href="../favicon.ico">
-    
-    <link rel="stylesheet" type="text/css" href="css/default.css" />
-    <link rel="stylesheet" type="text/css" href="css/component.css" />
+        <title>PORTUGOL - IDE</title>
+    	<meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+       
+        <meta name="description" content="Blueprint: Slide and Push Menus" />
+        <meta name="keywords" content="sliding menu, pushing menu, navigation, responsive, menu, css, jquery" />
+        <meta name="author" content="Codrops" />
 
-    <script src="libs/modernizr.custom.js"></script>
-	<script src="libs/jquery.min.js"></script>
-	<script src="libs/raphael-min.js"></script>
-    <script src="libs/classie.js"></script>
-    <script src="http://localhost:8080/socket.io/socket.io.js"></script>
-		
-    <script src="js/connection.js"></script>
-	<script src="js/DragFunctions.js"></script>
-	<script src="js/node.js"></script>
-	<script src="js/graph.js"></script>
+        <link rel="shortcut icon" href="../favicon.ico">
+        <link rel="stylesheet" type="text/css" href="css/default.css" />
+        <link rel="stylesheet" type="text/css" href="css/component.css" />
+        <link rel="stylesheet" type="text/css" href="css/responsive-tables.css">
+        <link rel="stylesheet" type="text/css" href="css/apprise.css"/>
+
+        <script src="libs/modernizr.custom.js"></script>
+    	<script src="libs/jquery.min.js"></script>
+    	<script src="libs/raphael-min.js"></script>
+        <script src="libs/apprise-1.5.js" type="text/javascript" ></script>
+        <script src="libs/classie.js"></script>
+        <script src="libs/responsive-tables.js"></script>
+        <script src="libs/jquery.tabify.js"></script>
+        <script src="http://130.185.82.181:8080/socket.io/socket.io.js"></script>
+
+        <script src="js/editor.js"></script>
+        <script src="js/connection.js"></script>
+    	<script src="js/DragFunctions.js"></script>
+    	<script src="js/node.js"></script>
+    	<script src="js/graph.js"></script>
 
 		<style>
 			body{
                 background-color: #F1F1F1;
+                cursor: url(cursor.cur),default;
             }
             #toolbar{  
                 background-color: #C0C0C0;
@@ -40,6 +48,20 @@
                 margin-right: 160px;
                 float: right;
             }
+            #contextmenu{
+                display: none;
+                background-color: #e4e4e4;
+                box-shadow: 5px 5px 5px #888888;
+                border:1px solid #333333;   
+            }
+            a{
+                 color:#a1a1a1;
+            }
+            a:hover
+            { 
+                color:black;
+
+            }
             #sidebar{
                 background-color: #C0C0C0;
                 width:50px;
@@ -47,8 +69,7 @@
                 border: 5px solid #aaa; 
                 border-radius: 25px;
                 float:right;
-                }
-
+            }
 			#canvas{
 				border: 0px solid black;
 				width: 100%;
@@ -56,210 +77,133 @@
 				float: left;
 
 			}
+            #menu {
+                padding: 0;
+            }
+            #menu li {
+                display: inline;
+                text-align: center;
+            }
+            #menu li a {
+                background: #ccf;
+                padding: 0px;
+                float:left;
+                border-right: 0px solid #ccf;
+                border-bottom: none;
+                text-decoration: none;
+                color: #000;
+                font-weight: bold;
+            }
+            #menu li.active a {
+                background: #eef;
+            }
+            .content {
+                float: left;
+                clear: both; 
+                border: 0px solid #ccf;
+                border-top: none;
+                border-left: none;
+                background: #eef;
+                padding: 0px 0px 0px;
+                width: 100%;
+                height: 100%;
+                background-color:#fff;
+                color:#000;
+                font-size:78.5%;
+            }
+            #menu {
+                margin-top: 0px;
+                margin-bottom: 0px;
+            }
+            #consola{
+                overflow-y: scroll;
+            }
 		</style>
-
-		<script>
-    		$(document).on('ready', function() {
-
-    			var Drag = new DragFunctions();
-    					
-                var socket = io.connect('http://localhost:8080');
-
-                socket.on('validate', function (data){
-                  console.log(data.result);
-                });
-
-                socket.on('consoleUpdate', function (data){
-                  console.log(data);
-                  $("#consola").append("<br>" + data);
-                });
-
-                socket.on('memoryUpdate', function (jsonMemory){
-                  var vars=JSON.parse(jsonMemory);
-                  clearMemory();
-                  fillMemory(vars);
-                });
-
-                $('#btnValidar').on('click', function (){
-                  var json = Drag.graph.extract();
-                  socket.emit('flowchart', json);
-                });
-                
-                $('#btnExecutar').on('click', function (){
-                  var json = Drag.graph.extract();        
-                  socket.emit('execute', json);
-                });
-
-                $('#btnAbrir').on('click', function (){
-                    dragndrop.graphclean();
-                    var nomegrafo = prompt('Inserir o grafo que deseja abrir:','');
-
-                    $.ajax({
-                        async:false,
-                        cache: false,
-                        type: 'GET',
-                        url: 'http://localhost/couchget/' + nomegrafo,
-                        data: {},
-                        dataType: 'json',
-                        success: function(json) {
-                            if(json.result !== undefined || json.result == 'nok') {
-                                alert(json.message);
-                            } else {
-                                console.log(json);
-                                console.log(JSON.stringify(json.grafo));
-                                dragndrop.jsontographic(JSON.stringify(json.grafo));
-                            }
-                        },
-                        error:function (xhr, ajaxOptions, thrownError){
-                            if(xhr.readyState == 0 || xhr.status == 0) {
-                                return;
-                            } else {
-                                alert(xhr.status);
-                                alert(thrownError);
-                            }
-                        }
-                    });
-      
-                   
-                });
-
-                $('#btnApagar').on('click', function() {
-                    dragndrop.graphclean();
-                });
-
-                $('#btnGuardar').on('click', function (){
-                    console.log('guardar');
-                    var nomegrafo = prompt('Nome para o Grafo:','');
-                    json = Drag.graph.extract();
-                    json = JSON.parse(json);
-                    $.ajax({
-                        async:false,
-                        cache: false,
-                        type: 'POST',
-                        url: 'http://localhost/couchset',
-                        data: {
-                            _id: nomegrafo,
-                            grafo: json
-                        },
-                        dataType: 'json',
-                        success: function(json) {
-                            console.log(json);
-                            if(json.result == 'ok') {
-                                alert("guardado com sucesso");
-                            } else {
-                                alert(json.message);
-                            }
-                        },
-                        error:function (xhr, ajaxOptions, thrownError){
-                            if(xhr.readyState == 0 || xhr.status == 0) {
-                                return;
-                            } else {
-                                alert(xhr.status);
-                                alert(thrownError);
-                            }
-                        }
-                    });
-                });
-    		});
-            
-            function clearMemory(){
-            var parent=document.getElementById('memoria');
-            //o cabecalho nao e apagado
-            for(var i = parent.rows.length-1; i > 0;i--){
-              parent.deleteRow(i);
-            }
-            /*
-            var parent=document.getElementById('memoria');
-            while(parent.hasChildNodes()){
-                parent.removeChild(parent.firstChild);
-            }*/
-            }
-
-            function fillMemory(vars){
-                for(var i=0; i<vars.length; i++){
-                  addRowMemory(vars[i]);
-                }
-            }
-
-            function addRowMemory(variable){
-                var parent=document.getElementById("memoria");
-                console.log(parent.rows.length);
-                var newRow = parent.insertRow(parent.rows.length);
-                var name = newRow.insertCell(0);
-                var type = newRow.insertCell(1);
-                var value = newRow.insertCell(2);
-                var level = newRow.insertCell(3);
-                name.innerHTML = variable.name_;
-                type.innerHTML = variable.type_;
-                value.innerHTML = variable.value_;
-                level.innerHTML = variable.level_;
-            }
-		</script>
 	</head>
 
 	<body class="cbp-spmenu-push" oncontextmenu="return false;">
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
             <h3>Memoria</h3>
-            <table border="1" id="memoria" style="background-color:#fff; color:#000; font-size:76%;">
+            <!--<table border="1" id="memoria" style="background-color:#fff; color:#000; font-size:76%;">
                 <tr>
                     <th>Nome</th>
                     <th>Tipo</th>
                     <th>Valor</th>
                     <th>Nivel</th>
                 </tr>
-            </table>
-
+            </table>-->
             <form>
-            <fieldset>
-            <legend>Selecting elements</legend>
-            <p>
-            <label>Linguaguem Programação</label>
-            <select id = "myList">
-            <option value = "1">C++</option>
-            <option value = "2">C#</option>
-            <option value = "3">java</option>
-            <option value = "4">Python</option>
-            </select>
-            <label>Idioma</label>
-            <select id = "myList2">
-            <option value = "1">Portugues</option>
-            <option value = "2">Inglês</option>
-            <option value = "3">Espanhol</option>
-            <option value = "4">Russo</option>
-            </select>        
-            </p>
-            </fieldset>
+                <fieldset>
+                    <legend>Selecting elements</legend>
+                    <p>
+                        <label>Linguaguem Programação</label>
+                        <select id = "myList">
+                            <option value = "1">C++</option>
+                            <option value = "2">C#</option>
+                            <option value = "3">java</option>
+                            <option value = "4">Python</option>
+                        </select>
+                        <label>Idioma</label>
+                        <select id = "myList2">
+                            <option value = "1">Portugues</option>
+                            <option value = "2">Inglês</option>
+                            <option value = "3">Espanhol</option>
+                            <option value = "4">Russo</option>
+                        </select>        
+                    </p>
+                </fieldset>
             </form>          
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom " id="cbp-spmenu-s4">
-            <h3>Consola</h3>
-            <div id="consola" width="300" border="1" height="500px" style="background-color:#fff; color:#000; font-size:78.5%;">
+            <div id="mostra" style="border-left:0px; border-top:0px; margin-left:0px; margin-top:0px; background-color: #333333; "><img src="\img\arrow_up.png" style="width:20px; height:20px;"/></div>
+            <ul id="menu">
+                <li class="active"><a href="#consola">Consola</a></li>
+            <!-- <div id="consola" width="300" border="1" height="500px" style="background-color:#fff; color:#000; font-size:78.5%;">
                 Consola: 
-                <!--<input class="FormElement" name="term" id="term" type="text">!-->
-                <!--<textarea id="consola" rows="5" cols="50">Consola: </textarea>-->
+            </div> -->
+                <li><a href="#mem">Memória</a></li>
+                <li><a href="#traducao">Tradução</a></li>
+            </ul>
+            <div class="content" id="consola">Consola:</div>
+            <div class="content" id="mem">
+                <table class="responsive" id="memoria">
+                    <tr>
+                        <th>Nome</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Nível</th>
+                    </tr>
+                </table>
+            </div>
+            <div class="content" id="traducao">
+                Tradução:
             </div>
         </nav>
         <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
             <h3>ToolBox</h3>
-            <a id="showBottom"><img src="/img/tools.png"> Tools</a> 
-            <a id="btnApagar"><img src="/img/apagar.png"> Apagar</a>
-            <a id="btnValidar"><img src="/img/validar.png">Validar</a>
-            <a id="btnExecutar"><img src="/img/console.png"> Executar</a>
-            <a id="btnAbrir"><img src="/img/open.png"> Abrir</a>
-            <a id="btnGuardar"><img src="/img/guardar.png"> Guardar</a>
+            <a id="showBottom">Tools</a> 
+            <a id="btnApagar">Apagar</a>
+            <a id="btnValidar">Validar</a>
+            <a id="btnExecutar">Executar</a>
+            <a id="btnAbrir"> Abrir</a>
+            <a id="btnGuardar"> Guardar</a>
+            <a id="btnConect">Conexões</a>
+            <a id="btnSelect">Select</a>
+            <a id="btnStart">START</a>
+            <a id="btnNext">NEXT</a>
+            <a id="btnStop">STOP</a>
+
         </nav>
 
-
-        
-        <!--<div class="container">
-            <header class="clearfix">
-            
-            </header>
-            <div class="principal">!-->
-                <!-- imprimir o portugol-->
-                <div class="xpto" id="canvas"></div>
-       <!-- </div>!-->
-
+        <div class="xpto" id="canvas" oncontextmenu="return false;"></div>
+        <div id="contextmenu">
+            <a id="showBottom"><img src="img/tools.png"> Tools</a><br>
+            <a id="btnApagar"><img src="img/apagar.png"> Apagar</a><br>
+            <a id="btnValidar"><img src="img/validar.png">Validar</a><br>
+            <a id="btnExecutar"><img src="img/console.png"> Executar</a><br>
+            <a id="btnAbrir"><img src="img/open.png"> Abrir</a><br>
+            <a id="btnGuardar"><img src="img/guardar.png"> Guardar</a><br>
+        </div>
         <script>
             var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
                 menuLeft2 = document.getElementById( 'cbp-spmenu-s5' ),
@@ -273,46 +217,12 @@
                 showLeftPush = document.getElementById( 'showLeftPush' ),
                 showRightPush = document.getElementById( 'showRightPush' ),
                 body = document.body;
-            /*showLeft.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuLeft, 'cbp-spmenu-open' );
-                classie.toggle( menuLeft2, 'inactive' );
-                disableOther( 'showLeft2' );
-            };
-            /*showLeft2.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuLeft2, 'cbp-spmenu-open' );
-                classie.toggle( menuLeft, 'inactive' );
-                disableOther( 'showLeft' );
-            };*/
-            /*showRight.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuRight, 'cbp-spmenu-open' );
-                disableOther( 'showRight' );
-            };
-            /*showTop.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuTop, 'cbp-spmenu-open' );
-                disableOther( 'showTop' );
-            };*/
+          
             showBottom.onclick = function() {
                 classie.toggle( this, 'active' );
                 classie.toggle( menuLeft, 'cbp-spmenu-open' );
                 classie.toggle( menuBottom, 'cbp-spmenu-open' );
-                //disableOther( 'showBottom' );
             };
-            /*showLeftPush.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( body, 'cbp-spmenu-push-toright' );
-                classie.toggle( menuLeft, 'cbp-spmenu-open' );
-                disableOther( 'showLeftPush' );
-            };
-            showRightPush.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( body, 'cbp-spmenu-push-toleft' );
-                classie.toggle( menuRight, 'cbp-spmenu-open' );
-                disableOther( 'showRightPush' );
-            };*/
         </script>
     </body>
 </html>
