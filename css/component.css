@@ -3,43 +3,39 @@
 	background: #C0C0C0;
 	position: fixed;
 }
-
 .cbp-spmenu h3 {
 	color: #afdefa;
-	font-size: 1.9em;
-	padding: 20px;
+	font-size: 1.1em;
+	padding: 10px;
 	margin: 0;
 	font-weight: 300;
-	background: #0d77b6;
+	background: #333333;
 }
-
 .cbp-spmenu a {
 	display: block;
 	color: #fff;
-	font-size: 1.1em;
+	font-size: 0.7em;
 	font-weight: 300;
+	padding: 2em;
 }
 
 .cbp-spmenu a:hover {
-	background: #258ecd;
+	background: #8F8F8F;
 }
 
 .cbp-spmenu a:active {
 	background: #afdefa;
 	color: #47a3da;
 }
-
-/* Orientation-dependent styles for the content of the menu */
-
 .cbp-spmenu-vertical {
-	width: 140px;
+	width: 75px;
 	height: 100%;
 	top: 0;
 	z-index: 1000;
 }
 
 .cbp-spmenu-vertical a {
-	border-bottom: 1px solid #258ecd;
+	border-bottom: 1px solid #333333;
 	padding: 1em;
 }
 
@@ -89,7 +85,7 @@
 }
 
 .cbp-spmenu-bottom {
-	bottom: -150px;
+	bottom: -80px;
 }
 
 .cbp-spmenu-top.cbp-spmenu-open {
@@ -99,9 +95,6 @@
 .cbp-spmenu-bottom.cbp-spmenu-open {
 	bottom: 0px;
 }
-
-/* Push classes applied to the body */
-
 .cbp-spmenu-push {
 	overflow-x: hidden;
 	position: relative;
@@ -116,17 +109,12 @@
 	left: -240px;
 }
 
-/* Transitions */
-
 .cbp-spmenu,
 .cbp-spmenu-push {
 	-webkit-transition: all 0.3s ease;
 	-moz-transition: all 0.3s ease;
 	transition: all 0.3s ease;
 }
-
-/* Example media queries */
-
 @media screen and (max-width: 55.1875em){
 
 	.cbp-spmenu-horizontal {
@@ -145,7 +133,6 @@
 }
 
 @media screen and (max-height: 26.375em){
-
 	.cbp-spmenu-vertical {
 		font-size: 90%;
 		width: 190px;

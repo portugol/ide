@@ -1,28 +1,25 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>PORTUGOL - IDE</title>
-    <meta name="description" content="Blueprint: Slide and Push Menus" />
-    <meta name="keywords" content="sliding menu, pushing menu, navigation, responsive, menu, css, jquery" />
-    <meta name="author" content="Codrops" />
-    <link rel="shortcut icon" href="../favicon.ico">
-    
-    <link rel="stylesheet" type="text/css" href="css/default.css" />
-    <link rel="stylesheet" type="text/css" href="css/component.css" />
+        <title>PORTUGOL - IDE</title>
+    	<meta charset="UTF-8" />
 
-    <script src="libs/modernizr.custom.js"></script>
-		<script src="libs/jquery.min.js"></script>
-		<script src="libs/raphael-min.js"></script>
-    <script src="libs/classie.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-		
-    <script src="js/connection.js"></script>
-		<script src="js/DragFunctions.js"></script>
-		<script src="js/node.js"></script>
-		<script src="js/graph.js"></script>
+        <link rel="shortcut icon" href="../favicon.ico">
+        <link rel="stylesheet" type="text/css" href="css/default.css" />
+        <link rel="stylesheet" type="text/css" href="css/component.css" />
+        <link rel="stylesheet" type="text/css" href="css/apprise.css"/>
+
+        <script src="libs/modernizr.custom.js"></script>
+    	<script src="libs/jquery.min.js"></script>
+    	<script src="libs/raphael-min.js"></script>
+        <script src="libs/apprise-1.5.js" type="text/javascript" ></script>
+        <script src="libs/classie.js"></script>
+        <script src="http://130.185.82.181:8080/socket.io/socket.io.js"></script>
+
+        <script src="js/connection.js"></script>
+    	<script src="js/DragFunctions.js"></script>
+    	<script src="js/node.js"></script>
+    	<script src="js/graph.js"></script>
 
 		<style>
 			body{
@@ -56,201 +53,529 @@
 				float: left;
 
 			}
-            textarea{
-                resize: none;
-            }
 		</style>
 
 		<script>
-			$(document).on('ready', function() {
 
-				var Drag = new DragFunctions();
-						
-        var socket = io.connect();
 
-        socket.on('validate', function (data){
-          console.log(data.result);
-        });
+    		$(document).on('ready', function() {
 
-        socket.on('consoleUpdate', function (data){
-          console.log(data);
-          $("#consola").append("\n" + data);
-        });
+                var menuBottom = document.getElementById( 'cbp-spmenu-s4' );
+    			var Drag = new DragFunctions();
+                var socket = io.connect('http://130.185.82.181:8080');
+                running=false;
+                var stepping=false;
+                var selectTool=true;
+                var desliga = false;
+                var consoleup = false;
 
-        socket.on('memoryUpdate', function (jsonMemory){
-          var vars=JSON.parse(jsonMemory);
-          clearMemory();
-          fillMemory(vars);
-        });
+                enableBtnExecute(true);
+                enableBtnStart(true);
+                enableBtnNext(false);
+                enableBtnStop(false);
 
-        $('#btnValidar').on('click', function (){
-          var json = Drag.graph.extract();
-          socket.emit('flowchart', json);
-        });
-        
-        $('#btnExecutar').on('click', function (){
-          var json = Drag.graph.extract();        
-          socket.emit('execute', json);
-        });
+                socket.on('validated', function (){
+                    console.log("teste1");
+                    clearMemory(); //limpar memória
+                    clearConsole(); //limpar consola
+                    Drag.reverseAll(); //restaurar cores originais
+                    Drag.undragAll();  //não permitir arrastar elementos
+                    if(stepping){
+                        enableBtnStart(false);
+                        enableBtnExecute(false);
+                        //enableBtnStart(false);
+                        console.log("TESTE");
+                        enableBtnStop(true);
+                        enableBtnNext(true);
+                    }
+                    else{
+                        enableBtnExecute(false);
+                        enableBtnStart(false);
+                        enableBtnStop(true);
+                        enableBtnNext(false);
+                    }
+                    writeConsoleInfo("--- Execution started ---");
+                });
 
-			})
+                socket.on('highlight', function (payload){          
+                    Drag.stepHighlight(payload.actual, payload.previous); 
+                    enableBtnNext();
+                    
+                    var vars=JSON.parse(payload.memory);
+                    clearMemory();
+                    fillMemory(vars);
+                });
+
+                socket.on('restore', function (uuid){
+                    Drag.reverseHighlight(uuid); 
+                });
+
+                socket.on('requestInput', function(varname){
+                    apprise("Introduza o valor de <b><i>"+varname+"</b></i> :",{
+                        'confirm' : true, 
+                        'input' : true, 
+                        'animate' : true, 
+                        'textOk' : 'Ok',
+                        'textCancel' : 'Cancelar', 
+                    },function(input) {
+                        if(input){
+                            socket.emit('inputFromIDE',input);
+                        }else{
+                            socket.emit('inputFromIDE',"");
+                        }
+
+                    });
+                });
+
+                socket.on('errors', function(errors){
+                    clearConsole();
+                    Drag.reverseAll();
+                    for(var i=0; i<errors.length; i++){
+                        console.log(errors[i].message);
+                        writeConsoleError(errors[i].message);
+                        if(errors[i].uuid!==undefined){
+                            console.log(errors[i].uuid);
+                            Drag.errorHighlight(errors[i].uuid); 
+                        }
+                    } 
+                });
+
+                socket.on('errorAbort', function (error){
+                    console.log("ERROR ABORT");
+                    console.log(error.message);
+                    writeConsoleError(error.message);
+                    Drag.reverseHighlight(error.previous);
+                    Drag.errorHighlight(error.uuid);
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
+                    Drag.dragAll();
+                });
+
+                socket.on('finished', function (payload){
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
+                    Drag.stepHighlight(payload.actual, payload.previous);
+                    fillMemory(payload.memory);
+                    writeConsoleInfo("--- Execution finished ---");
+                    console.log("terminou o fluxograma");
+                    Drag.dragAll();
+                });
+
+                socket.on('executionAborted',function (uuid){
+                    if(stepping){
+                        Drag.reverseHighlight(uuid);
+                    }
+                    running=false;
+                    stepping=false;
+                    enableBtnStart(true);
+                    enableBtnExecute(true);
+                    enableBtnStop(false);
+                    enableBtnNext(false);
+                    clearMemory();
+                    writeConsoleInfo("--- Execution aborted ---");
+                    Drag.dragAll();
+                });
+
+                socket.on('consoleUpdate', function (data){
+                  writeConsoleMessage(data);
+                });
+                $('#btnValidar').on('click', function (){
+                    if (desliga == true){
+
+                    }else{
+                  var json = Drag.graph.extract();
+                  socket.emit('validate', json);}
+                });
+                
+                $('#btnExecutar').on('click', function (){
+                    if (consoleup == true){
+
+                    }else{
+                        classie.toggle( menuBottom, 'cbp-spmenu-open' );
+
+                  var json = Drag.graph.extract();
+                  socket.emit('execute', json);}
+                });
+
+                $('#btnStart').on('click', function(){
+                    if (desliga == true){
+
+                    }else{
+                        if($(this).is(":disabled")==false){
+                        var json = Drag.graph.extract();
+                        socket.emit('start', json);
+                        stepping=true;
+                        running = true;
+                    }
+                    }
+                });
+
+                $('#btnStop').on('click', function(){
+                    if (desliga == true){
+
+                    }else{
+                    if($(this).is(":disabled")==false){
+                        socket.emit('stopExecution');
+                    }}
+                });
+
+                $('#btnNext').on('click', function(){
+                    if (desliga == true){
+
+                    }else{
+                    if($(this).is(":disabled")==false){
+                        enableBtnNext(false);
+                        if(stepping){
+                            socket.emit('next');
+                        }
+                    }}
+                });
+
+                $('#btnAbrir').on('click', function (){
+                    if (desliga == true){
+
+                    }else{
+                    desliga=true;
+                    console.log(desliga);
+                   dragndrop.graphclean();
+                   var nomegrafo; 
+                   apprise('Insera o fluxograma que deseja abrir:',{
+                        'confirm' : true,
+                        'input' : true, 
+                        'animate' : true, 
+                        'textOk' : 'Ok',
+                        'textCancel' : 'Cancelar', 
+                    },function(input) {
+                        desliga = false;
+                        if(input){
+                            nomegrafo = input;
+                            $.ajax({
+                                async:false,
+                                cache: false,
+                                type: 'GET',
+                                url: 'http://130.185.82.181/couchget/' + nomegrafo,
+                                data: {},
+                                dataType: 'json',
+                                success: function(json) {
+                                    if(json.result !== undefined || json.result == 'nok') {
+                                        if(json.message == 'missing'){
+                                            apprise("Fluxograma não encontrado!")
+                                        }else{
+                                            apprise(json.message);    
+                                        }
+                                    } else {
+                                        dragndrop.jsontographic(JSON.stringify(json.grafo));
+                                    }
+                                },
+                                error:function (xhr, ajaxOptions, thrownError){
+                                if(xhr.readyState == 0 || xhr.status == 0) {
+                                    return;
+                                } else {
+                                    apprise("Ocorreu um erro inesperado!");
+                                }
+                            }
+                        });
+                        }
+                    });
+                }
+                });
+
+                $('#btnApagar').on('click', function() {
+                    if (desliga == true){
+
+                    }else{
+                    dragndrop.deleteSet();
+                }
+                });
+
+                $('#mostra').on('click', function() {
+                    if (desliga == true){
+
+                    }else{
+                   classie.toggle( menuBottom, 'cbp-spmenu-open' );
+                }
+                });
+
+                $('#btnGuardar').on('click', function (){
+                    if (desliga == true){
+
+                    }else{
+                    apprise('Insera o nome com que deseja guardar:',{
+                        'confirm' : true,
+                        'input' : true, 
+                        'animate' : true, 
+                        'textOk' : 'Ok', 
+                        'textCancel' : 'Cancelar',
+                    },function(input) {
+                        if(input){
+                            nomegrafo = input;
+                            json = Drag.graph.extract();
+                            json = JSON.parse(json);
+                            $.ajax({
+                                async:false,
+                                cache: false,
+                                type: 'POST',
+                                url: 'http://130.185.82.181/couchset',
+                                data: {
+                                    _id: nomegrafo,
+                                    grafo: json
+                                },
+                                dataType: 'json',
+                                success: function(json) {
+                                    if(json.result == 'ok') {
+                                        apprise("Guardado com sucesso!");
+                                    } else {
+                                        if(json.message == "Document update conflict."){
+                                            apprise("O fluxograma " + nomegrafo + " ja existe . Por favor introduza outro nome. ");   
+                                        }else{
+                                            apprise(json.message);
+                                        }
+                                    }
+                                },
+                                error:function (xhr, ajaxOptions, thrownError){
+                                    if(xhr.readyState == 0 || xhr.status == 0) {
+                                        return;
+                                    } else {
+                                        apprise("Ocorreu um erro inesperado!");
+                                    }
+                                }
+                            });
+                        }   
+                    });                 
+                }
+            });
+                $('#btnConect').on('click',function(){
+                    if (desliga == true){
+
+                    }else{
+                    console.log("conect");
+                    dragndrop.setToConnect();
+                }
+                });
+                $('#btnSelect').on('click',function(){
+                    if (desliga == true){
+
+                    }else{
+                    console.log("select")
+                    dragndrop.setToSelect();
+                }
+                }); 
+    		});
             
-      function clearMemory(){
-        var parent=document.getElementById('memoria');
-        //o cabecalho nao e apagado
-        for(var i = parent.rows.length-1; i > 0;i--){
-          parent.deleteRow(i);
-        }
-        /*
-        var parent=document.getElementById('memoria');
-        while(parent.hasChildNodes()){
-            parent.removeChild(parent.firstChild);
-        }*/
-      }
+            function enableBtnNext(flag){
+                console.log("NEXT OK");
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnNext').css("background-color", "#CCCCCC");
+                }
+                else{
+                    $('#btnNext').css("background-color", "#505050");
+                }
+                $('#btnNext').prop('disabled', !status);
+            }
 
-      function fillMemory(vars){
-        for(var i=0; i<vars.length; i++){
-          addRowMemory(vars[i]);
-        }
-      }
+            function enableBtnStop(flag){
+                console.log("STOP OK");
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnStop').css("background-color", "#CCCCCC");
+                }
+                else{
+                    $('#btnStop').css("background-color", "#505050");
+                }
+                $('#btnStop').prop('disabled', !status);
+            }
 
-      function addRowMemory(variable){
-        var parent=document.getElementById("memoria");
-        console.log(parent.rows.length);
-        var newRow = parent.insertRow(parent.rows.length);
-        var name = newRow.insertCell(0);
-        var type = newRow.insertCell(1);
-        var value = newRow.insertCell(2);
-        var level = newRow.insertCell(3);
-        name.innerHTML = variable.name_;
-        type.innerHTML = variable.type_;
-        value.innerHTML = variable.value_;
-        level.innerHTML = variable.level_;
-      }
+            function enableBtnExecute(flag){
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnExecutar').css("background-color", "#CCCCCC");
+                }
+                else{
+                    $('#btnExecutar').css("background-color", "#AAB3AB");
+                }
+                $('#btnExecutar').prop('disabled', !status);
+            }
+
+            function enableBtnStart(flag){
+                var status=flag;
+                if(flag===undefined){
+                    status=true;
+                }
+                if(status){
+                    $('#btnStart').css("background-color", "#CCCCCC");
+                }
+                else{
+                    $('#btnStart').css("background-color", "#AAB3AB");
+                }
+                $('#btnStart').prop('disabled', !status);
+            }
+
+            
+
+            function clearMemory(){
+                var parent=document.getElementById('memoria');
+                //o cabecalho nao e apagado
+                for(var i = parent.rows.length-1; i > 0;i--){
+                  parent.deleteRow(i);
+                }
+            }
+
+            function clearConsole(){
+                $('#consola').empty();
+            }
+
+            function writeConsole(data,color){
+                color=color||"#000000";
+                $("#consola").append('<span style="color:'+color+'">'+data+'<br></span>');
+                $("#consola").scrollTop($("#consola")[0].scrollHeight); //scroll automatico
+            }
+
+            function writeConsoleError(data){
+                writeConsole(data,"#FF0011");
+            }
+
+            function writeConsoleMessage(data){
+                writeConsole(data,"#000000");
+            }
+
+            function writeConsoleInfo(data){
+                writeConsole(data,"#107ECC");
+            }
+
+            function fillMemory(vars){
+                for(var i=0; i<vars.length; i++){
+                  addRowMemory(vars[i]);
+                }
+            }
+
+            function addRowMemory(variable){
+                var parent=document.getElementById("memoria");
+                console.log(parent.rows.length);
+                var newRow = parent.insertRow(parent.rows.length);
+                var name = newRow.insertCell(0);
+                var type = newRow.insertCell(1);
+                var value = newRow.insertCell(2);
+                var level = newRow.insertCell(3);
+                name.innerHTML = variable.name_;
+                type.innerHTML = variable.type_;
+                value.innerHTML = variable.value_;
+                level.innerHTML = variable.level_;
+            }
 		</script>
 	</head>
 
-	<body class="cbp-spmenu-push" oncontextmenu="return false;">
-        <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-left" id="cbp-spmenu-s1">
-            <h3>Memoria</h3>
-            <table border="1" id="memoria" style="background-color:#fff; color:#000; font-size:78.5%;">
-                <tr>
-                    <th>Nome</th>
-                    <th>Tipo</th>
-                    <th>Valor</th>
-                    <th>Nivel</th>
-                </tr>
-            </table>
-            <form>
-            <fieldset>
-            <legend>Selecting elements</legend>
-            <p>
-             <label>Linguaguem Programação</label>
-             <select id = "myList">
-               <option value = "1">C++</option>
-               <option value = "2">C#</option>
-               <option value = "3">java</option>
-               <option value = "4">Python</option>
-             </select>
-             <label>Idioma</label>
-             <select id = "myList2">
-               <option value = "1">Portugues</option>
-               <option value = "2">Inglês</option>
-               <option value = "3">Espanhol</option>
-               <option value = "4">Russo</option>
-             </select>        
-          </p>
-       </fieldset>
-    </form>               
-        </nav>
+	<body class="cbp-spmenu-push">
         <nav class="cbp-spmenu cbp-spmenu-horizontal cbp-spmenu-bottom " id="cbp-spmenu-s4">
-            <h3>Consola</h3>
-            <div id="console" width="300" border="1" height="500px" style="background-color:#fff; color:#000; font-size:78.5%;">
-                Consola:
-                <br \>
-                <br \>
-                <br \>
-                <br \>
-
-                <!--<input class="FormElement" name="term" id="term" type="text">!-->
-                <!--<textarea id="consola" rows="5" cols="50">Consola: </textarea>!-->
-                
+            <button id="mostra" style="border-left:0px; border-top:0px; margin-left:0px; margin-top:0px">Show</button><br/>
+            <div id="consola" width="300" border="1" height="500px" style="background-color:#fff; color:#000; font-size:78.5%;">
+                Consola: 
             </div>
         </nav>
-        <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
-            <h3>ToolBox</h3>
-            <a id="showBottom"><img src="./img/tools.png"> Tools</a> 
-            <a id=""><img src="./img/apagar.png"> Apagar</a>
-            <a id="btnValidar"><img src="./img/validar.png">Validar</a>
-            <a id="btnExecutar"><img src="./img/console.png"> Executar</a>
-            <a id="btnExecutar"><img src="./img/open.png"> Abrir</a>
-            <a id="btnExecutar"><img src="./img/guardar.png"> Guardar</a>
-        </nav>
+       <center> <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right cbp-spmenu-open" id="cbp-spmenu-s2">
+            <h3>ToolBox</h3> 
+            <a id="btnApagar">
+            <svg width="34px" height="34px" style="fill:#505050">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M20.826,5.75l0.396,1.188c1.54,0.575,2.589,1.44,2.589,2.626c0,2.405-4.308,3.498-8.312,3.498c-4.003,0-8.311-1.093-8.311-3.498c0-1.272,1.21-2.174,2.938-2.746l0.388-1.165c-2.443,0.648-4.327,1.876-4.327,3.91v2.264c0,1.224,0.685,2.155,1.759,2.845l0.396,9.265c0,1.381,3.274,2.5,7.312,2.5c4.038,0,7.313-1.119,7.313-2.5l0.405-9.493c0.885-0.664,1.438-1.521,1.438-2.617V9.562C24.812,7.625,23.101,6.42,20.826,5.75zM11.093,24.127c-0.476-0.286-1.022-0.846-1.166-1.237c-1.007-2.76-0.73-4.921-0.529-7.509c0.747,0.28,1.58,0.491,2.45,0.642c-0.216,2.658-0.43,4.923,0.003,7.828C11.916,24.278,11.567,24.411,11.093,24.127zM17.219,24.329c-0.019,0.445-0.691,0.856-1.517,0.856c-0.828,0-1.498-0.413-1.517-0.858c-0.126-2.996-0.032-5.322,0.068-8.039c0.418,0.022,0.835,0.037,1.246,0.037c0.543,0,1.097-0.02,1.651-0.059C17.251,18.994,17.346,21.325,17.219,24.329zM21.476,22.892c-0.143,0.392-0.69,0.95-1.165,1.235c-0.474,0.284-0.817,0.151-0.754-0.276c0.437-2.93,0.214-5.209-0.005-7.897c0.881-0.174,1.708-0.417,2.44-0.731C22.194,17.883,22.503,20.076,21.476,22.892zM11.338,9.512c0.525,0.173,1.092-0.109,1.268-0.633h-0.002l0.771-2.316h4.56l0.771,2.316c0.14,0.419,0.53,0.685,0.949,0.685c0.104,0,0.211-0.017,0.316-0.052c0.524-0.175,0.808-0.742,0.633-1.265l-1.002-3.001c-0.136-0.407-0.518-0.683-0.945-0.683h-6.002c-0.428,0-0.812,0.275-0.948,0.683l-1,2.999C10.532,8.77,10.815,9.337,11.338,9.512z"/>
+                </svg></a>
+            <a id="btnValidar">
+                <svg width="32px" height="32px" style="fill:#505050">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M29.548,3.043c-1.081-0.859-2.651-0.679-3.513,0.401L16,16.066l-3.508-4.414c-0.859-1.081-2.431-1.26-3.513-0.401c-1.081,0.859-1.261,2.432-0.401,3.513l5.465,6.875c0.474,0.598,1.195,0.944,1.957,0.944c0.762,0,1.482-0.349,1.957-0.944L29.949,6.556C30.809,5.475,30.629,3.902,29.548,3.043zM24.5,24.5h-17v-17h12.756l2.385-3H6C5.171,4.5,4.5,5.171,4.5,6v20c0,0.828,0.671,1.5,1.5,1.5h20c0.828,0,1.5-0.672,1.5-1.5V12.851l-3,3.773V24.5z"/>
+                </svg>
+            </a>
+            <a id="btnExecutar">
+                <svg width="30"height="24" style="fill:#505050">
+                <path
+                 d="M3.25,6.469v19.062h25.5V6.469H3.25zM10.345,11.513l-4.331,1.926V12.44l3.124-1.288v-0.018L6.014,9.848v-1l4.331,1.927V11.513zM16.041,14.601h-5.05v-0.882h5.05V14.601z"
+                  />
+                </svg></a>
+            <a id="btnAbrir">
+            <svg width="32px" height="25px" style="fill:#505050">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M0,32c0-9.133,0-18.212,0-27.381c0.376,0,0.716-0.01,1.055,0.001
+                c0.76,0.027,1.279-0.375,1.534-1.274c0.154-0.541,0.307-1.082,0.466-1.62C3.454,0.384,3.93-0.066,5.087-0.08
+                c1.986-0.023,3.972-0.001,5.958-0.008c0.92-0.003,1.536,0.534,1.865,1.578c0.16,0.511,0.282,1.042,0.433,1.557
+                c0.354,1.224,0.754,1.572,1.802,1.572C20.515,4.62,25.883,4.62,31.253,4.62c0.238,0,0.476,0,0.747,0c0,9.165,0,18.242,0,27.38
+                C21.341,32,10.698,32,0,32z"/>
+                </svg></a>
+            <a id="btnGuardar">
+               <svg width="33px" height="33px" style="fill:#505050" >
+                          <g
+               id="g3030">
+                <path
+               fill-rule="evenodd"
+               clip-rule="evenodd"
+               d="M-0.001,32.625c0-10.842,0-21.633,0-32.464c1.516,0,3,0,4.555,0   c0,0.265,0,0.496,0,0.728c0,3.501,0.013,7.002-0.013,10.503c-0.005,0.561,0.178,0.698,0.712,0.696   c5.393-0.016,10.785-0.019,16.179,0.003c0.601,0.002,0.723-0.202,0.719-0.751c-0.022-3.481-0.013-6.963-0.013-10.444   c0-0.232,0-0.465,0-0.77c1.178,0,2.289-0.011,3.4,0.014c0.141,0.003,0.3,0.175,0.411,0.303c1.946,2.229,3.891,4.46,5.819,6.705   c0.137,0.161,0.221,0.421,0.222,0.635c0.011,8.149,0.009,16.299,0.008,24.447c0,0.116-0.02,0.232-0.033,0.396   C21.32,32.625,10.688,32.625-0.001,32.625z M27.373,30.353c0-4.832,0-9.592,0-14.37c-7.612,0-15.188,0-22.769,0   c0,4.815,0,9.588,0,14.37C12.215,30.353,19.775,30.353,27.373,30.353z"
+               id="path3032" />
+                <path
+               fill-rule="evenodd"
+               clip-rule="evenodd"
+               d="M12.706,10.074c0-2.694,0-5.336,0-8.017c2.183,0,4.331,0,6.536,0   c0,2.655,0,5.312,0,8.017C17.086,10.074,14.922,10.074,12.706,10.074z"
+               id="path3034" />
+                
+                <path
+               fill-rule="evenodd"
+               clip-rule="evenodd"
+               d="M24.416,19.871c0,0.635,0,1.221,0,1.845c-5.617,0-11.204,0-16.843,0   c0-0.595,0-1.193,0-1.845C13.163,19.871,18.762,19.871,24.416,19.871z"
+               id="path3038" />
+                <path
+               fill-rule="evenodd"
+               clip-rule="evenodd"
+               d="M7.551,26.809c0-0.635,0-1.221,0-1.844c5.618,0,11.204,0,16.844,0   c0,0.595,0,1.193,0,1.844C18.805,26.809,13.206,26.809,7.551,26.809z"
+               id="path3040" />
+            </g>
 
+            </svg></a>
+             </a>
+            <a title="Conecção"id="btnConect" >
+                <svg width="32px" height="32px" style="fill:#505050">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M4.489,24.378c0.921-0.202,1.54-0.849,2.164-1.454
+                        c1.813-1.758,3.167-4.014,4.559-6.226c2.195-3.493,4.223-7.152,6.854-10.21c1.585-1.841,3.354-3.429,5.608-3.683
+                        c1.726-0.194,3.477-0.038,5.272-0.038c0,1.686,0,3.408,0,5.21c-1.239,0-2.466,0.09-3.68-0.022c-1.48-0.136-2.597,0.644-3.663,1.724
+                        c-2.032,2.058-3.489,4.706-5.113,7.186c-1.904,2.908-3.777,5.854-5.802,8.635c-1.535,2.108-3.429,3.685-5.803,4.214
+                        C4.727,29.748,4.489,23.106,4.489,24.378z"/>
+                    <polygon fill-rule="evenodd" clip-rule="evenodd" points="27.5,0.703 32,5.853 26.208,10.404 "/>
+                    <polygon fill-rule="evenodd" clip-rule="evenodd" points="4.341,21.703 -0.159,26.854 5.634,31.404 "/>
+                </svg></a>
+            <a id="btnSelect">
+                <svg width="24px" height="24px" style="fill:#505050">
+                <path d="M24.533,31.662L9.768,15.97l-2.551,9.657C7.057,25.54,2.297,8.647,0,0
+                    c8.551,2.312,25.558,6.91,25.558,6.91l-9.592,2.646l16.034,15.341"/>
+                </svg>
+            </a>
+            <a id="btnStart">
+            <svg width="32px" height="32px" style="fill:#505050">
+            <path d="M6.684,25.682L24.316,15.5L6.684,5.318V25.682z"/>
+            </svg></a>
+            <a id="btnNext">
+                <svg width="32px" height="32px" style="fill:#505050">
+            <path d="M21.167,5.5,21.167,13.681,6.684,5.318,6.684,25.682,21.167,17.318,21.167,25.5,25.5,25.5,25.5,5.5z"/>
+            </svg>
+            </a>
+            <a id="btnStop">
+            <svg width="32px" height="32px" style="fill:#505050">
+            <path d="M5.5,5.5h20v20h-20z"/>
+            </svg></a>
+        </nav></center>
 
-        
-        <!--<div class="container">
-            <header class="clearfix">
-            
-            </header>
-            <div class="principal">!-->
-                <!-- imprimir o portugol-->
-                <div class="xpto" id="canvas"></div>
-       <!-- </div>!-->
+        <div class="xpto" id="canvas"></div>
 
-        <script>
-            var menuLeft = document.getElementById( 'cbp-spmenu-s1' ),
-                menuLeft2 = document.getElementById( 'cbp-spmenu-s5' ),
-                menuRight = document.getElementById( 'cbp-spmenu-s2' ),
-                menuTop = document.getElementById( 'cbp-spmenu-s3' ),
-                menuBottom = document.getElementById( 'cbp-spmenu-s4' ),
-                showLeft = document.getElementById( 'showLeft' ),
-                showRight = document.getElementById( 'showRight' ),
-                showTop = document.getElementById( 'showTop' ),
-                showBottom = document.getElementById( 'showBottom' ),
-                showLeftPush = document.getElementById( 'showLeftPush' ),
-                showRightPush = document.getElementById( 'showRightPush' ),
-                body = document.body;
-            /*showLeft.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuLeft, 'cbp-spmenu-open' );
-                classie.toggle( menuLeft2, 'inactive' );
-                disableOther( 'showLeft2' );
-            };
-            /*showLeft2.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuLeft2, 'cbp-spmenu-open' );
-                classie.toggle( menuLeft, 'inactive' );
-                disableOther( 'showLeft' );
-            };*/
-            /*showRight.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuRight, 'cbp-spmenu-open' );
-                disableOther( 'showRight' );
-            };
-            /*showTop.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuTop, 'cbp-spmenu-open' );
-                disableOther( 'showTop' );
-            };*/
-            showBottom.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( menuLeft, 'cbp-spmenu-open' );
-                classie.toggle( menuBottom, 'cbp-spmenu-open' );
-                disableOther( 'showBottom' );
-            };
-            /*showLeftPush.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( body, 'cbp-spmenu-push-toright' );
-                classie.toggle( menuLeft, 'cbp-spmenu-open' );
-                disableOther( 'showLeftPush' );
-            };
-            showRightPush.onclick = function() {
-                classie.toggle( this, 'active' );
-                classie.toggle( body, 'cbp-spmenu-push-toleft' );
-                classie.toggle( menuRight, 'cbp-spmenu-open' );
-                disableOther( 'showRightPush' );
-            };*/
-        </script>
     </body>
 </html>
+
